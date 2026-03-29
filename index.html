@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>怪獣大図鑑</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif JP',serif;background:#f5f0e8;color:#2a1a08;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px 60px}
+header{border-bottom:4px double #8b4513;margin-bottom:0;padding:20px 0 14px;text-align:center}
+header::before{content:'★ ウルトラ怪獣大図鑑 ★';display:block;font-size:11px;letter-spacing:.3em;color:#8b4513;margin-bottom:8px;font-family:'Noto Sans JP',sans-serif}
+.site-title{font-size:clamp(22px,5vw,38px);font-weight:900;color:#1a0a00;letter-spacing:.05em;line-height:1.1}
+.site-title span{color:#c0392b}
+.site-byline{font-size:11px;color:#8b6040;margin-top:6px;letter-spacing:.15em;font-family:'Noto Sans JP',sans-serif}
+.stamp{display:inline-block;border:2px solid #c0392b;color:#c0392b;font-size:10px;padding:2px 8px;letter-spacing:.2em;font-family:'Noto Sans JP',sans-serif;transform:rotate(-2deg);margin-top:6px}
+nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
+.nav-tab{flex:1;padding:11px 8px;background:#d4c9b0;border:none;border-right:2px solid #2a1a08;font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;color:#2a1a08;cursor:pointer;letter-spacing:.08em;transition:all .15s;text-align:center}
+.nav-tab:last-child{border-right:none}
+.nav-tab:hover{background:#b8a88a;color:#1a0a00}
+.nav-tab.active{background:#2a1a08;color:#f5f0e8}
+.panel{display:none}.panel.active{display:block}
+.search-form{display:flex;gap:0;margin-bottom:12px;border:2px solid #2a1a08}
+.search-input{flex:1;background:#fffdf7;border:none;padding:10px 14px;font-family:'Noto Serif JP',serif;font-size:14px;color:#1a0a00;outline:none}
+.search-input::placeholder{color:#b09070}
+.search-btn{padding:10px 20px;background:#2a1a08;border:none;color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.1em;transition:background .15s;white-space:nowrap}
+.search-btn:hover{background:#4a2a0a}
+.search-btn:disabled{opacity:.5;cursor:not-allowed}
+.series-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;padding:10px;background:#ede5d0;border:1px solid #c0a070}
+.series-label{font-size:11px;color:#7a5030;align-self:center;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif;margin-right:4px}
+.chip{padding:4px 12px;background:#fffdf7;border:1px solid #8b6040;font-size:12px;font-family:'Noto Sans JP',sans-serif;color:#5a3a1a;cursor:pointer;transition:all .15s;letter-spacing:.05em}
+.chip:hover,.chip.on{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
+.kaiju-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.kcard{background:#fffdf7;border:1px solid #c0a070;padding:14px;cursor:pointer;transition:all .15s;position:relative}
+.kcard::after{content:'';position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;background:#8b6040;z-index:-1}
+.kcard:hover{transform:translate(-2px,-2px)}
+.kcard-num{font-size:10px;color:#b09070;letter-spacing:.15em;font-family:'Noto Sans JP',sans-serif;margin-bottom:4px}
+.kcard-name{font-size:17px;font-weight:900;color:#1a0a00;margin-bottom:4px;letter-spacing:.05em}
+.kcard-series{font-size:11px;color:#8b4513;border-left:3px solid #8b4513;padding-left:6px;margin-bottom:8px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.05em}
+.kcard-desc{font-size:12px;color:#4a3020;line-height:1.7}
+.kcard-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.ktag{padding:2px 7px;background:#2a1a08;color:#f5e8d0;font-size:10px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em}
+.ktag.r{background:#8b1a1a;color:#ffe0d0}
+.ktag.g{background:#1a4a1a;color:#d0ffe0}
+.fav-btn{position:absolute;top:10px;right:10px;background:none;border:1px solid #c0a070;width:26px;height:26px;cursor:pointer;font-size:14px;color:#b09070;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.fav-btn.on{background:#c0392b;border-color:#c0392b;color:#fff}
+.fav-btn:hover{border-color:#8b4513}
+.detail-box{background:#fffdf7;border:2px solid #2a1a08;padding:20px;margin-bottom:20px;position:relative}
+.detail-box::before{content:'';position:absolute;top:4px;left:4px;right:-4px;bottom:-4px;border:1px solid #c0a070;z-index:-1}
+.detail-close{position:absolute;top:10px;right:10px;background:none;border:1px solid #8b6040;padding:3px 10px;font-family:'Noto Sans JP',sans-serif;font-size:12px;cursor:pointer;color:#5a3a1a;transition:all .15s}
+.detail-close:hover{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
+.detail-name{font-size:28px;font-weight:900;color:#1a0a00;letter-spacing:.05em;margin-bottom:4px}
+.detail-series{font-size:12px;color:#8b4513;letter-spacing:.1em;margin-bottom:12px;font-family:'Noto Sans JP',sans-serif}
+.detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:#f5f0e8;border:1px solid #c0a070;padding:8px;text-align:center}
+.stat-l{font-size:10px;color:#8b6040;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif}
+.stat-v{font-size:14px;font-weight:700;color:#1a0a00;margin-top:2px}
+.detail-body{font-size:13px;color:#2a1a08;line-height:1.9;border-top:1px dashed #c0a070;padding-top:12px}
+.detail-fav{margin-top:12px}
+.quiz-top{text-align:center;padding:28px 0}
+.quiz-h{font-size:24px;font-weight:900;letter-spacing:.1em;color:#1a0a00;margin-bottom:8px}
+.quiz-sub{font-size:13px;color:#7a5030;line-height:1.8;margin-bottom:22px;font-family:'Noto Sans JP',sans-serif}
+.diff-row{display:flex;gap:0;justify-content:center;margin-bottom:24px;border:2px solid #2a1a08;width:fit-content;margin-left:auto;margin-right:auto}
+.diff-btn{padding:8px 18px;background:#fffdf7;border:none;border-right:1px solid #2a1a08;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#5a3a1a;transition:all .15s}
+.diff-btn:last-child{border-right:none}
+.diff-btn.on,.diff-btn:hover{background:#2a1a08;color:#f5f0e8}
+.start-btn{padding:12px 40px;background:#c0392b;border:none;color:#fff;font-family:'Noto Serif JP',serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.15em;transition:background .15s;border-bottom:3px solid #7a1a1a}
+.start-btn:hover{background:#a02020}
+.qcount-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:20px}
+.quiz-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.qtype-btn{background:#fffdf7;border:2px solid #c0a070;padding:14px 8px;cursor:pointer;font-family:'Noto Serif JP',serif;color:#2a1a08;transition:all .15s;text-align:center}
+.qtype-btn:hover{border-color:#8b4513;background:#ede5d0}
+.qtype-btn.on{background:#2a1a08;border-color:#2a1a08;color:#f5f0e8}
+.qtype-title{font-size:14px;font-weight:700;margin-bottom:6px;letter-spacing:.05em}
+.qtype-desc{font-size:11px;line-height:1.6;opacity:.8}
+.q-progress{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.q-bar-wrap{flex:1;height:6px;background:#ddd0b8;border:1px solid #c0a070}
+.q-bar-fill{height:100%;background:#c0392b;transition:width .4s}
+.q-bar-txt{font-size:12px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;white-space:nowrap}
+.q-box{background:#fffdf7;border:2px solid #2a1a08;padding:20px;margin-bottom:14px}
+.q-no{font-size:11px;color:#8b6040;letter-spacing:.15em;font-family:'Noto Sans JP',sans-serif;margin-bottom:8px}
+.q-txt{font-size:16px;font-weight:700;color:#1a0a00;line-height:1.8}
+.opts{display:grid;gap:8px}
+.opt{padding:12px 16px;background:#fffdf7;border:1px solid #c0a070;font-family:'Noto Serif JP',serif;font-size:14px;color:#2a1a08;cursor:pointer;text-align:left;transition:all .15s;letter-spacing:.03em}
+.opt:hover:not(:disabled){background:#ede5d0;border-color:#8b4513}
+.opt.ok{background:#d5edd5;border-color:#1a6a1a;color:#0a3a0a}
+.opt.ng{background:#fdd;border-color:#c0392b;color:#6a0a0a}
+.opt:disabled{cursor:not-allowed}
+.feedback{padding:12px 16px;border-left:4px solid #8b4513;background:#f5ece0;font-size:13px;line-height:1.7;margin-bottom:12px;font-family:'Noto Sans JP',sans-serif}
+.feedback.ok-fb{border-color:#1a6a1a;background:#eaf5ea;color:#0a3a0a}
+.feedback.ng-fb{border-color:#c0392b;background:#fef0f0;color:#6a0a0a}
+.next-btn{width:100%;padding:12px;background:#2a1a08;border:none;color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.1em;transition:background .15s}
+.next-btn:hover{background:#4a2a0a}
+.score-box{background:#fffdf7;border:3px double #2a1a08;padding:32px;text-align:center;position:relative;margin-top:8px}
+.score-box::before{content:'採点結果';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#fffdf7;padding:0 12px;font-size:12px;letter-spacing:.2em;color:#8b4513;font-family:'Noto Sans JP',sans-serif}
+.score-num{font-size:60px;font-weight:900;color:#c0392b;line-height:1}
+.score-total{font-size:16px;color:#5a3a1a;margin-top:4px}
+.score-rank{font-size:22px;font-weight:900;margin:14px 0 6px;letter-spacing:.1em}
+.score-comment{font-size:13px;color:#5a3a1a;font-family:'Noto Sans JP',sans-serif;line-height:1.7;margin-bottom:20px}
+.score-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.favs-count{font-size:12px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;margin-bottom:12px;letter-spacing:.08em}
+.loading{text-align:center;padding:40px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;font-size:13px;letter-spacing:.1em}
+.dot{display:inline-block;width:6px;height:6px;background:#8b4513;border-radius:50%;margin:0 3px;animation:blink 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+.empty{text-align:center;padding:36px;color:#8b6040;font-family:'Noto Sans JP',sans-serif;font-size:13px;border:1px dashed #c0a070}
+.btn-s{padding:8px 20px;background:#fffdf7;border:1px solid #8b6040;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#2a1a08;transition:all .15s;letter-spacing:.05em}
+.btn-s:hover{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
+.btn-r{padding:8px 20px;background:#fffdf7;border:1px solid #c0392b;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#c0392b;transition:all .15s;letter-spacing:.05em}
+.btn-r:hover{background:#c0392b;color:#fff}
+.hid{display:none!important}
+.db-badge{display:inline-block;background:#1a4a1a;color:#d0ffe0;font-size:10px;padding:2px 8px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em;margin-left:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="site-title">怪獣<span>大図鑑</span></div>
+  <div class="site-byline">ULTRAMAN SERIES — AI搭載版 <span class="db-badge">DB連携 / Gemini</span></div>
+  <div class="stamp">AI自動生成</div>
+</header>
+
+<nav>
+  <button class="nav-tab active" onclick="tab('search')">▶ 怪獣検索</button>
+  <button class="nav-tab" onclick="tab('quiz')">▶ クイズ</button>
+  <button class="nav-tab" onclick="tab('favs')">▶ お気に入り</button>
+</nav>
+
+<div id="p-search" class="panel active">
+  <div class="search-form">
+    <input class="search-input" id="si" placeholder="怪獣名を入力（例：ゴモラ、バルタン星人…）" />
+    <button class="search-btn" id="sb" onclick="doSearch()">検索</button>
+  </div>
+  <div class="series-filter">
+    <span class="series-label">シリーズ▶</span>
+    <div class="chip on" data-s="all" onclick="filterS(this)">全作品</div>
+    <div class="chip" data-s="初代ウルトラマン" onclick="filterS(this)">初代</div>
+    <div class="chip" data-s="ウルトラセブン" onclick="filterS(this)">セブン</div>
+    <div class="chip" data-s="帰ってきたウルトラマン" onclick="filterS(this)">帰マン</div>
+    <div class="chip" data-s="ウルトラマンタロウ" onclick="filterS(this)">タロウ</div>
+    <div class="chip" data-s="ウルトラマンメビウス" onclick="filterS(this)">メビウス</div>
+  </div>
+  <div id="d-box" class="hid"></div>
+  <div id="s-loading" class="loading hid"><div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>データを取得中…</div>
+  <div id="s-empty" class="empty hid">該当する怪獣が見つかりませんでした</div>
+  <div id="s-init" class="empty">キーワード入力またはシリーズを選択してください</div>
+  <div id="k-grid" class="kaiju-grid"></div>
+</div>
+
+<div id="p-quiz" class="panel">
+  <div id="qs-start">
+    <div class="quiz-top">
+      <div class="quiz-h">怪獣クイズ</div>
+      <div class="quiz-sub">クイズの種類を選んでスタート！<br>DBのデータをもとにGeminiが10問生成します。</div>
+      <div class="quiz-type-grid">
+        <button class="qtype-btn on" data-q="name" onclick="setQType(this)">
+          <div class="qtype-title">怪獣名当て</div>
+          <div class="qtype-desc">シリーズと別名から<br>怪獣名を当てる</div>
+        </button>
+        <button class="qtype-btn" data-q="tags" onclick="setQType(this)">
+          <div class="qtype-title">別名当て</div>
+          <div class="qtype-desc">怪獣名から<br>正しい別名を当てる</div>
+        </button>
+        <button class="qtype-btn" data-q="episode" onclick="setQType(this)">
+          <div class="qtype-title">登場話数当て</div>
+          <div class="qtype-desc">怪獣名↔話数を<br>当てる</div>
+        </button>
+      </div>
+      <div class="qcount-row">
+        <span class="series-label">出題数▶</span>
+        <button class="diff-btn on" data-c="5" onclick="setQCount(this)">5問</button>
+        <button class="diff-btn" data-c="10" onclick="setQCount(this)">10問</button>
+      </div>
+      <button class="start-btn" onclick="startQuiz()">挑戦開始</button>
+    </div>
+  </div>
+  <div id="qs-loading" class="loading hid"><div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>AIが問題を作成中…</div>
+  <div id="qs-q" class="hid">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="btn-r" onclick="quitQuiz()" style="font-size:12px;padding:5px 14px">クイズをやめる ✕</button>
+    </div>
+    <div class="q-progress"><div class="q-bar-wrap"><div class="q-bar-fill" id="qfill"></div></div><div class="q-bar-txt" id="qtxt">1/10</div></div>
+    <div class="q-box"><div class="q-no" id="qno">第一問</div><div class="q-txt" id="qtext"></div></div>
+    <div class="opts" id="opts"></div>
+    <div id="qfb" class="hid"></div>
+    <button class="next-btn hid" id="qnext" onclick="nextQ()">次の問題へ ▶</button>
+  </div>
+  <div id="qs-score" class="hid">
+    <div class="score-box">
+      <div class="score-num" id="snum"></div>
+      <div class="score-total" id="score-total-lbl">点 / 10問中</div>
+      <div class="score-rank" id="srank"></div>
+      <div class="score-comment" id="scomment"></div>
+      <div class="score-btns">
+        <button class="btn-s" onclick="resetQuiz()">もう一度挑戦</button>
+        <button class="btn-r" onclick="tab('search')">怪獣を調べる</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="p-favs" class="panel">
+  <div class="favs-count" id="fav-count"></div>
+  <div id="fav-empty" class="empty hid">お気に入りはまだありません。<br>怪獣カードの ★ ボタンで登録できます。</div>
+  <div id="fav-grid" class="kaiju-grid"></div>
+</div>
+
+</div>
+
+<script>
+// ========== 設定 ==========
+const SUPABASE_URL = "https://cbxipgqfhbsmgmatherr.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieGlwZ3FmaGJzbWdtYXRoZXJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDMwMzcsImV4cCI6MjA4OTkxOTAzN30.Q1tuMpTsuhCPDAWLUohDI6PTDPZNZU8Uxwf30ENHmNI";
+const GEMINI_KEY = "AIzaSyBUB1yvzFhlBbaExZ-y5MHaUC2Udl6L9p4";
+const GEMINI_API = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+// ==========================
+
+let allK = [], curSeries = "all";
+let favs = JSON.parse(localStorage.getItem('kaiju_favs') || '[]');
+let qDiff = "初級", qList = [], qIdx = 0, qScore = 0;
+
+// Supabaseからデータ取得
+async function fetchFromDB(params = {}) {
+  let url = `${SUPABASE_URL}/rest/v1/kaiju?select=*`;
+  if (params.search) {
+    url += `&name=ilike.*${encodeURIComponent(params.search)}*`;
+  }
+  if (params.series) {
+    url += `&series=eq.${encodeURIComponent(params.series)}`;
+  }
+  url += "&order=name.asc&limit=50";
+
+  const res = await fetch(url, {
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`
+    }
+  });
+  return await res.json();
+}
+
+// AI呼び出し（クイズ生成用）
+async function callAI(prompt) {
+  const res = await fetch(GEMINI_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 1000 }
+    })
+  });
+  const d = await res.json();
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+function tab(n) {
+  if (n !== 'quiz') {
+    const inProgress = !document.getElementById('qs-q').classList.contains('hid');
+    if (inProgress) quitQuiz();
+  }
+  document.querySelectorAll('.nav-tab').forEach((t, i) => t.classList.toggle('active', ['search','quiz','favs'][i] === n));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('p-' + n).classList.add('active');
+  if (n === 'favs') renderFavs();
+}
+
+async function doSearch() {
+  const q = document.getElementById('si').value.trim();
+  if (!q) return;
+  setLoading(true);
+  hide('s-init');
+  try {
+    allK = await fetchFromDB({ search: q });
+    renderGrid();
+  } catch(e) {
+    show('s-empty');
+  }
+  setLoading(false);
+}
+
+async function loadSeries(s) {
+  setLoading(true);
+  hide('s-init');
+  try {
+    allK = await fetchFromDB({ series: s });
+    renderGrid();
+  } catch(e) {
+    show('s-empty');
+  }
+  setLoading(false);
+}
+
+function filterS(el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  curSeries = el.dataset.s;
+  document.getElementById('d-box').classList.add('hid');
+  if (curSeries === 'all') {
+    allK = [];
+    document.getElementById('k-grid').innerHTML = '';
+    hide('s-empty');
+    show('s-init');
+  } else {
+    loadSeries(curSeries);
+  }
+}
+
+function renderGrid() {
+  hide('s-empty');
+  if (!allK.length) { show('s-empty'); document.getElementById('k-grid').innerHTML = ''; return; }
+  document.getElementById('k-grid').innerHTML = allK.map((k, i) => `
+    <div class="kcard">
+      <button class="fav-btn ${isFav(k.name) ? 'on' : ''}" onclick="toggleFav(event,${i})">★</button>
+      <div class="kcard-num">No.${String(i + 1).padStart(3, '0')}</div>
+      <div class="kcard-name">${k.name}</div>
+      <div class="kcard-series">${k.series || ''}</div>
+      <div class="kcard-desc">${(k.desc || '').substring(0, 60)}…</div>
+      <div class="kcard-tags"><span class="ktag ${k.tc || ''}">${k.tags || ''}</span></div>
+    </div>
+  `).join('');
+  document.querySelectorAll('.kcard').forEach((c, i) => c.addEventListener('click', e => {
+    if (e.target.classList.contains('fav-btn')) return;
+    showDetail(allK[i]);
+  }));
+}
+
+function showDetail(k) {
+  const box = document.getElementById('d-box');
+  box.classList.remove('hid');
+  box.innerHTML = `
+    <div class="detail-box">
+      <button class="detail-close" onclick="document.getElementById('d-box').classList.add('hid')">閉じる ✕</button>
+      <div class="detail-name">${k.name}</div>
+      <div class="detail-series">${k.series || ''} / ${k.episode || ''}</div>
+      <div class="detail-stats">
+        <div class="stat"><div class="stat-l">身　長</div><div class="stat-v">${k.height || '不明'}</div></div>
+        <div class="stat"><div class="stat-l">体　重</div><div class="stat-v">${k.weight || '不明'}</div></div>
+        <div class="stat"><div class="stat-l">出身地</div><div class="stat-v" style="font-size:12px">${k.origin || '不明'}</div></div>
+      </div>
+      <div class="detail-body">${k.desc || ''}</div>
+      <div class="detail-fav">
+        <button class="btn-${isFav(k.name) ? 'r' : 's'}" id="dfav"
+          onclick="toggleFavDetail('${k.name.replace(/'/g, "\\'")}', this)">
+          ${isFav(k.name) ? '★ お気に入り解除' : '☆ お気に入りに追加'}
+        </button>
+      </div>
+    </div>`;
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function isFav(name) { return favs.some(f => f.name === name); }
+function saveFavs() { localStorage.setItem('kaiju_favs', JSON.stringify(favs)); }
+
+function toggleFav(e, idx) {
+  e.stopPropagation();
+  const k = allK[idx];
+  if (isFav(k.name)) favs = favs.filter(f => f.name !== k.name);
+  else favs.push(k);
+  saveFavs(); renderGrid();
+}
+
+function toggleFavDetail(name, btn) {
+  const k = allK.find(x => x.name === name);
+  if (isFav(name)) { favs = favs.filter(f => f.name !== name); btn.textContent = '☆ お気に入りに追加'; btn.className = 'btn-s'; }
+  else { if (k) favs.push(k); btn.textContent = '★ お気に入り解除'; btn.className = 'btn-r'; }
+  saveFavs();
+}
+
+function renderFavs() {
+  document.getElementById('fav-count').textContent = `登録数：${favs.length}件`;
+  if (!favs.length) { show('fav-empty'); document.getElementById('fav-grid').innerHTML = ''; return; }
+  hide('fav-empty');
+  document.getElementById('fav-grid').innerHTML = favs.map((k, i) => `
+    <div class="kcard">
+      <button class="fav-btn on" onclick="removeFav(event,'${k.name.replace(/'/g, "\\'")}')">★</button>
+      <div class="kcard-num">お気に入り</div>
+      <div class="kcard-name">${k.name}</div>
+      <div class="kcard-series">${k.series || ''}</div>
+      <div class="kcard-desc">${(k.desc || '').substring(0, 60)}…</div>
+      <div class="kcard-tags"><span class="ktag ${k.tc || ''}">${k.tags || ''}</span></div>
+    </div>
+  `).join('');
+  document.querySelectorAll('#fav-grid .kcard').forEach((c, i) => c.addEventListener('click', e => {
+    if (e.target.classList.contains('fav-btn')) return;
+    showDetail(favs[i]);
+  }));
+}
+
+function removeFav(e, name) { e.stopPropagation(); favs = favs.filter(f => f.name !== name); saveFavs(); renderFavs(); }
+
+let qType = "name", qCount = 5;
+function setQType(el) {
+  document.querySelectorAll('.qtype-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  qType = el.dataset.q;
+}
+function setQCount(el) {
+  document.querySelectorAll('[data-c]').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  qCount = parseInt(el.dataset.c);
+}
+function quitQuiz() {
+  hide('qs-q');
+  hide('qs-score');
+  hide('qs-loading');
+  show('qs-start');
+  qList = []; qIdx = 0; qScore = 0;
+}
+
+async function startQuiz() {
+  show('qs-loading'); hide('qs-start');
+
+  let pool = [];
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kaiju?select=name,series,tags,episode&limit=500`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+    });
+    pool = await res.json();
+  } catch(e) {}
+
+  if (!pool.length) { hide('qs-loading'); show('qs-start'); alert('データ取得に失敗しました'); return; }
+
+  const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+  const pick = (arr, n) => shuffle([...arr]).slice(0, n);
+  const others = (all, correct, key) => shuffle(all.filter(k => k[key] !== correct)).slice(0, 3).map(k => k[key]);
+
+  const subjects = pick(pool, qCount);
+  qList = subjects.map(k => {
+    let q, correct, wrongs, opts, ans;
+    if (qType === "name") {
+      q = `次のヒントの怪獣名は何でしょう？
+【シリーズ】${k.series}
+【別名・種別】${k.tags}`;
+      correct = k.name;
+      wrongs = others(pool, k.name, "name");
+    } else if (qType === "tags") {
+      q = `「${k.name}」の別名・種別は何でしょう？`;
+      correct = k.tags;
+      wrongs = others(pool, k.tags, "tags");
+    } else {
+      if (Math.random() > 0.5) {
+        q = `「${k.name}」が初登場した話数は？`;
+        correct = k.episode;
+        wrongs = others(pool, k.episode, "episode");
+      } else {
+        q = `「${k.episode}」に初登場した怪獣は？`;
+        correct = k.name;
+        wrongs = others(pool, k.name, "name");
+      }
+    }
+    if (wrongs.length < 3) {
+      hide('qs-loading'); return null;
+    }
+    opts = shuffle([correct, ...wrongs]);
+    ans = opts.indexOf(correct);
+    return { q, opts, ans, exp: `正解は「${correct}」です。` };
+  }).filter(Boolean);
+
+  hide('qs-loading'); qIdx = 0; qScore = 0;
+  show('qs-q'); showQ();
+}
+
+function showQ() {
+  const q = qList[qIdx];
+  document.getElementById('qfill').style.width = (qIdx / 10 * 100) + '%';
+  document.getElementById('qtxt').textContent = `${qIdx + 1}/${qCount}`;
+  document.getElementById('qno').textContent = `第${['一','二','三','四','五','六','七','八','九','十'][qIdx]}問（全${qCount}問）`;
+  document.getElementById('qtext').textContent = q.q;
+  hide('qfb'); hide('qnext');
+  document.getElementById('opts').innerHTML = q.opts.map((o, i) =>
+    `<button class="opt" onclick="ansQ(${i})">${['ア','イ','ウ','エ'][i]}．${o}</button>`
+  ).join('');
+}
+
+function ansQ(idx) {
+  const q = qList[qIdx];
+  document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+  document.querySelectorAll('.opt')[q.ans].classList.add('ok');
+  if (idx !== q.ans) document.querySelectorAll('.opt')[idx].classList.add('ng');
+  else qScore++;
+  const fb = document.getElementById('qfb');
+  fb.className = 'feedback ' + (idx === q.ans ? 'ok-fb' : 'ng-fb');
+  fb.textContent = (idx === q.ans ? '◎ 正解！　' : '× 不正解。正解は「' + q.opts[q.ans] + '」　') + (q.exp || '');
+  show('qfb'); show('qnext');
+}
+
+function nextQ() {
+  qIdx++;
+  if (qIdx >= qList.length || qIdx >= qCount) { hide('qs-q'); show('qs-score'); showScore(); }
+  else showQ();
+}
+
+function showScore() {
+  document.getElementById('qfill').style.width = '100%';
+  document.getElementById('snum').textContent = qScore;
+  document.getElementById('score-total-lbl').textContent = `点 / ${qCount}問中`;
+  const pct = qScore / qCount;
+  const rs = [[1,'秀','完璧な怪獣博士！全問正解の偉業達成！'],[0.8,'優','怪獣通の称号を授けます！'],[0.6,'良','なかなかの実力！さらに研究を重ねよ！'],[0.4,'可','まだまだ修行が必要じゃ…'],[0,'不可','怪獣図鑑をもっとよく読みなさい！']];
+  const [, rank, comment] = rs.find(([m]) => pct >= m);
+  const c = {秀:'#c0392b',優:'#8b4513',良:'#1a6a1a',可:'#4a3020','不可':'#888'}[rank];
+  document.getElementById('srank').innerHTML = `評価：<span style="color:${c};font-size:28px">${rank}</span>`;
+  document.getElementById('scomment').textContent = comment;
+}
+
+function resetQuiz() { hide('qs-score'); show('qs-start'); }
+
+function show(id) { document.getElementById(id).classList.remove('hid'); }
+function hide(id) { document.getElementById(id).classList.add('hid'); }
+function setLoading(on) {
+  document.getElementById('s-loading').classList.toggle('hid', !on);
+  document.getElementById('k-grid').style.opacity = on ? '0.3' : '1';
+  document.getElementById('sb').disabled = on;
+}
+
+document.getElementById('si').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+</script>
+</body>
+</html>
