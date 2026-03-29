@@ -333,7 +333,7 @@ function showDetail(k) {
     <div class="detail-box">
       <button class="detail-close" onclick="document.getElementById('d-box').classList.add('hid')">閉じる ✕</button>
       <div class="detail-name">${k.name}</div>
-      <div class="detail-series">${k.series || ''} / ${k.episode || ''}</div>
+      <div class="detail-series">${k.series || ''} / ${k.episode || ''}${k.episode_name ? '「' + k.episode_name + '」' : ''}</div>
       <div class="detail-stats">
         <div class="stat"><div class="stat-l">身　長</div><div class="stat-v">${k.height || '不明'}</div></div>
         <div class="stat"><div class="stat-l">体　重</div><div class="stat-v">${k.weight || '不明'}</div></div>
