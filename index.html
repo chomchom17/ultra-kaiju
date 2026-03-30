@@ -458,16 +458,17 @@ async function startQuiz() {
       correct = k.name;
       wrongs = others(pool, k.name, "name");
     } else if (qType === "tags") {
-      q = `「${k.name}」の別名・種別は何でしょう？`;
+      q = `次の怪獣の別名・種別は何でしょう？\n【怪獣名】${k.name}\n【シリーズ】${k.series}`;
       correct = k.tags;
       wrongs = others(pool, k.tags, "tags");
     } else {
+      const episodeLabel = `${k.series} ${k.episode}`;
       if (Math.random() > 0.5) {
-        q = `「${k.name}」が初登場した話数は？`;
-        correct = k.episode;
-        wrongs = others(pool, k.episode, "episode");
+        q = `次の怪獣が初登場した「シリーズ＋話数」は？\n【怪獣名】${k.name}`;
+        correct = episodeLabel;
+        wrongs = others(pool, k.name, "name").map(n => { const m = pool.find(x => x.name === n); return m ? `${m.series} ${m.episode}` : null; }).filter(Boolean);
       } else {
-        q = `「${k.episode}」に初登場した怪獣は？`;
+        q = `次の回に初登場した怪獣は？\n【${k.series}】${k.episode}`;
         correct = k.name;
         wrongs = others(pool, k.name, "name");
       }
