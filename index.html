@@ -27,10 +27,9 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .search-btn{padding:10px 20px;background:#2a1a08;border:none;color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.1em;transition:background .15s;white-space:nowrap}
 .search-btn:hover{background:#4a2a0a}
 .search-btn:disabled{opacity:.5;cursor:not-allowed}
-.series-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;padding:10px;background:#ede5d0;border:1px solid #c0a070}
-.series-label{font-size:11px;color:#7a5030;align-self:center;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif;margin-right:4px}
-.chip{padding:4px 12px;background:#fffdf7;border:1px solid #8b6040;font-size:12px;font-family:'Noto Sans JP',sans-serif;color:#5a3a1a;cursor:pointer;transition:all .15s;letter-spacing:.05em}
-.chip:hover,.chip.on{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
+.series-filter{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:10px;background:#ede5d0;border:1px solid #c0a070}
+.series-label{font-size:11px;color:#7a5030;white-space:nowrap;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif}
+.series-select{flex:1;background:#fffdf7;border:1px solid #8b6040;padding:8px 10px;font-family:'Noto Serif JP',serif;font-size:13px;color:#2a1a08;cursor:pointer;outline:none}
 .kaiju-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .kcard{background:#fffdf7;border:1px solid #c0a070;padding:14px;cursor:pointer;transition:all .15s;position:relative}
 .kcard::after{content:'';position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;background:#8b6040;z-index:-1}
@@ -130,17 +129,14 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 
 <div id="p-search" class="panel active">
   <div class="search-form">
-    <input class="search-input" id="si" placeholder="怪獣名を入力（例：ゴモラ、バルタン星人…）" />
+    <input class="search-input" id="si" placeholder="怪獣名・別名で検索（例：ゴモラ、電気怪獣…）" />
     <button class="search-btn" id="sb" onclick="doSearch()">検索</button>
   </div>
   <div class="series-filter">
     <span class="series-label">シリーズ▶</span>
-    <div class="chip on" data-s="all" onclick="filterS(this)">全作品</div>
-    <div class="chip" data-s="初代ウルトラマン" onclick="filterS(this)">初代</div>
-    <div class="chip" data-s="ウルトラセブン" onclick="filterS(this)">セブン</div>
-    <div class="chip" data-s="帰ってきたウルトラマン" onclick="filterS(this)">帰マン</div>
-    <div class="chip" data-s="ウルトラマンタロウ" onclick="filterS(this)">タロウ</div>
-    <div class="chip" data-s="ウルトラマンメビウス" onclick="filterS(this)">メビウス</div>
+    <select class="series-select" id="series-select" onchange="filterS(this)">
+      <option value="all">── 全作品 ──</option>
+    </select>
   </div>
   <div id="d-box" class="hid"></div>
   <div id="s-loading" class="loading hid"><div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>データを取得中…</div>
@@ -225,12 +221,13 @@ let qDiff = "初級", qList = [], qIdx = 0, qScore = 0;
 async function fetchFromDB(params = {}) {
   let url = `${SUPABASE_URL}/rest/v1/kaiju?select=*`;
   if (params.search) {
-    url += `&name=ilike.*${encodeURIComponent(params.search)}*`;
+    const kw = encodeURIComponent(params.search);
+    url += `&or=(name.ilike.*${kw}*,tags.ilike.*${kw}*)`;
   }
   if (params.series) {
     url += `&series=eq.${encodeURIComponent(params.series)}`;
   }
-  url += "&order=name.asc&limit=50";
+  url += "&order=name.asc&limit=100";
 
   const res = await fetch(url, {
     headers: {
@@ -239,6 +236,32 @@ async function fetchFromDB(params = {}) {
     }
   });
   return await res.json();
+}
+
+// シリーズ一覧をDBから取得してプルダウンに反映
+async function loadSeriesList() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kaiju?select=series&limit=500`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+    });
+    const data = await res.json();
+    const series = [...new Set(data.map(d => d.series).filter(Boolean))];
+    // 放送順に並べるための既知の順序
+    const order = ['初代ウルトラマン','ウルトラセブン','帰ってきたウルトラマン','ウルトラマンA','ウルトラマンタロウ','ウルトラマンレオ','ウルトラマン80','ウルトラマンティガ','ウルトラマンダイナ','ウルトラマンガイア','ウルトラマンコスモス','ウルトラマンネクサス','ウルトラマンマックス','ウルトラマンメビウス','ウルトラマンゼロ'];
+    series.sort((a, b) => {
+      const ai = order.indexOf(a), bi = order.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b, 'ja');
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+    const sel = document.getElementById('series-select');
+    series.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      sel.appendChild(opt);
+    });
+  } catch(e) {}
 }
 
 // AI呼び出し（クイズ生成用）
@@ -293,9 +316,7 @@ async function loadSeries(s) {
 }
 
 function filterS(el) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-  el.classList.add('on');
-  curSeries = el.dataset.s;
+  curSeries = el.value;
   document.getElementById('d-box').classList.add('hid');
   if (curSeries === 'all') {
     allK = [];
@@ -340,6 +361,7 @@ function showDetail(k) {
         <div class="stat"><div class="stat-l">出身地</div><div class="stat-v" style="font-size:12px">${k.origin || '不明'}</div></div>
       </div>
       <div class="detail-body">${k.desc || ''}</div>
+      ${k.tags ? `<div style="margin-top:10px"><span style="font-size:11px;color:#8b6040;font-family:'Noto Sans JP',sans-serif;letter-spacing:.1em;">別名・種別▶</span> <span class="ktag ${k.tc || ''}" style="font-size:11px;padding:3px 10px">${k.tags}</span></div>` : ''}
       <div class="detail-fav">
         <button class="btn-${isFav(k.name) ? 'r' : 's'}" id="dfav"
           onclick="toggleFavDetail('${k.name.replace(/'/g, "\\'")}', this)">
@@ -515,6 +537,7 @@ function setLoading(on) {
 }
 
 document.getElementById('si').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+loadSeriesList();
 </script>
 </body>
 </html>
