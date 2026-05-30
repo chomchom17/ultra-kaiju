@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウルトラマン詳細 — ウルトラマン大図鑑</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif JP',serif;background:#f5f0e8;color:#2a1a08;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px 60px}
+header{border-bottom:4px double #8b4513;margin-bottom:0;padding:20px 0 14px;text-align:center}
+header::before{content:'★ ウルトラマン大図鑑 ★';display:block;font-size:11px;letter-spacing:.3em;color:#8b4513;margin-bottom:8px;font-family:'Noto Sans JP',sans-serif}
+.site-title{font-size:clamp(18px,4vw,28px);font-weight:900;color:#1a0a00;letter-spacing:.05em;line-height:1.1}
+.site-title span{color:#1a3a8b}
+.back-bar{margin:16px 0 20px}
+.back-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fffdf7;border:1px solid #8b6040;font-family:'Noto Serif JP',serif;font-size:13px;color:#2a1a08;text-decoration:none;transition:all .15s;letter-spacing:.05em}
+.back-link:hover{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
+
+/* ヒーローセクション */
+.um-hero{background:#fffdf7;border:2px solid #2a1a08;padding:24px 24px 20px;margin-bottom:20px;position:relative}
+.um-hero::before{content:'';position:absolute;top:4px;left:4px;right:-4px;bottom:-4px;border:1px solid #1a3a8b;z-index:-1;opacity:.5}
+.um-year-badge{display:inline-block;background:#1a3a8b;color:#fffdf7;font-size:11px;padding:3px 10px;letter-spacing:.15em;font-family:'Noto Sans JP',sans-serif;margin-bottom:10px}
+.um-name{font-size:clamp(28px,6vw,44px);font-weight:900;color:#1a0a00;letter-spacing:.05em;margin-bottom:6px;line-height:1.1}
+.um-series{font-size:13px;color:#1a3a8b;letter-spacing:.1em;margin-bottom:8px;font-family:'Noto Sans JP',sans-serif;border-left:3px solid #1a3a8b;padding-left:8px}
+.um-alias{font-size:13px;color:#5a3a1a;font-family:'Noto Sans JP',sans-serif;letter-spacing:.05em}
+.um-alias strong{color:#2a1a08}
+
+/* スペックグリッド */
+.specs-section{margin-bottom:20px}
+.specs-title{font-size:12px;letter-spacing:.2em;color:#8b4513;font-family:'Noto Sans JP',sans-serif;margin-bottom:10px;padding-bottom:4px;border-bottom:1px dashed #c0a070}
+.specs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:500px){.specs-grid{grid-template-columns:repeat(2,1fr)}}
+.spec{background:#fffdf7;border:1px solid #c0a070;padding:10px;text-align:center;position:relative}
+.spec-label{font-size:10px;color:#8b6040;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif;margin-bottom:4px}
+.spec-value{font-size:15px;font-weight:700;color:#1a0a00;letter-spacing:.03em}
+.spec.wide{grid-column:1/-1;text-align:left;display:flex;align-items:center;gap:12px}
+.spec.wide .spec-label{white-space:nowrap;margin-bottom:0;min-width:60px}
+.spec.wide .spec-value{font-size:13px}
+
+/* カラータイマー */
+.timer-badge{display:inline-block;padding:2px 8px;font-size:11px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em;margin-top:2px}
+.timer-badge.on{background:#ffe0d0;color:#8b1a1a;border:1px solid #c0a070}
+.timer-badge.off{background:#e0e8f0;color:#1a3a8b;border:1px solid #a0b8d0}
+
+/* 説明文 */
+.desc-section{margin-bottom:24px}
+.desc-title{font-size:12px;letter-spacing:.2em;color:#8b4513;font-family:'Noto Sans JP',sans-serif;margin-bottom:10px;padding-bottom:4px;border-bottom:1px dashed #c0a070}
+.desc-body{background:#fffdf7;border:1px solid #c0a070;padding:16px;font-size:13px;color:#2a1a08;line-height:2;letter-spacing:.04em}
+
+/* 必殺技セクション */
+.moves-section{}
+.moves-title{font-size:12px;letter-spacing:.2em;color:#8b4513;font-family:'Noto Sans JP',sans-serif;margin-bottom:10px;padding-bottom:4px;border-bottom:1px dashed #c0a070}
+.moves-list{display:flex;flex-direction:column;gap:10px}
+.move-item{background:#fffdf7;border:1px solid #c0a070;padding:14px 16px;display:flex;gap:14px;align-items:flex-start}
+.move-num{font-size:13px;font-weight:900;color:#1a3a8b;min-width:22px;padding-top:1px;font-family:'Noto Sans JP',sans-serif}
+.move-body{flex:1}
+.move-head{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.move-name{font-size:15px;font-weight:900;color:#1a0a00;letter-spacing:.05em}
+.move-type{font-size:10px;padding:2px 7px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em;white-space:nowrap}
+.move-type.光線技{background:#fff0d0;color:#8b4513;border:1px solid #e0b870}
+.move-type.投擲技{background:#d0e8ff;color:#1a3a8b;border:1px solid #90b8e0}
+.move-type.格闘技{background:#ffe0e0;color:#8b1a1a;border:1px solid #e0a0a0}
+.move-type.特殊技{background:#e0ffe0;color:#1a6a1a;border:1px solid #90c890}
+.move-type.防御技{background:#e8e0ff;color:#3a1a8b;border:1px solid #b0a0e0}
+.move-type.捕縛技{background:#fff0e8;color:#6b3a1a;border:1px solid #d0a888}
+.move-type.念動力{background:#f0e8ff;color:#5a1a8b;border:1px solid #c0a8e0}
+.move-type.空間技{background:#e0f8ff;color:#1a5a8b;border:1px solid #80c8e8}
+.move-type.切断技{background:#ffe8e0;color:#8b3a1a;border:1px solid #e0b0a0}
+.move-type.爆発技{background:#fff0c0;color:#7a4a00;border:1px solid #d8c050}
+.move-type.蘇生技{background:#e0ffe8;color:#1a6a3a;border:1px solid #90c8a0}
+.move-type.合体技{background:#fde0ff;color:#6a1a8b;border:1px solid #c890d8}
+.move-desc{font-size:12px;color:#4a3020;line-height:1.8}
+
+/* ローディング・エラー */
+.loading{text-align:center;padding:60px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;font-size:13px;letter-spacing:.1em}
+.dot{display:inline-block;width:6px;height:6px;background:#1a3a8b;border-radius:50%;margin:0 3px;animation:blink 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+.error-box{text-align:center;padding:36px;color:#8b6040;font-family:'Noto Sans JP',sans-serif;font-size:13px;border:1px dashed #c0a070;background:#fffdf7}
+.site-footer{margin-top:40px;padding:16px 0;border-top:1px solid #c0a070;text-align:center;font-family:'Noto Sans JP',sans-serif;font-size:10px;color:#9a7050;line-height:2;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="site-title">ウルトラマン<span>大図鑑</span></div>
+</header>
+
+<div class="back-bar">
+  <a class="back-link" href="ultraman_list.html">← ウルトラマン一覧に戻る</a>
+</div>
+
+<div id="loading" class="loading">
+  <div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>データを取得中…
+</div>
+<div id="error" class="error-box" style="display:none">
+  データの取得に失敗しました。<br><a href="ultraman_list.html" style="color:#1a3a8b">一覧に戻る</a>
+</div>
+<div id="content" style="display:none"></div>
+
+</div>
+
+<footer class="site-footer">
+  このサイトは非公式のファンサイトです。円谷プロダクションとは一切関係ありません。<br>
+  ウルトラマンシリーズに関するすべての著作権は © TSUBURAYA PRODUCTIONS CO., LTD. に帰属します。
+</footer>
+
+<script>
+async function loadDetail() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) { showError(); return; }
+
+  try {
+    const res = await fetch('data/ultraman.json');
+    const data = await res.json();
+    const um = data.find(u => String(u.id) === String(id));
+    if (!um) { showError(); return; }
+
+    const moves = (um.moves || []).sort((a, b) => a.order_no - b.order_no);
+
+    document.title = `${um.name} — ウルトラマン大図鑑`;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('content').innerHTML = renderDetail(um, moves);
+  } catch(e) {
+    showError();
+  }
+}
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error').style.display = 'block';
+}
+
+function renderDetail(um, moves) {
+  const timerClass = um.color_timer && um.color_timer.startsWith('あり') ? 'on' : 'off';
+
+  // スペック項目（値があるものだけ表示）
+  const specs = [
+    { label: '身長',     value: um.height },
+    { label: '体重',     value: um.weight },
+    { label: '年齢',     value: um.age },
+    { label: '飛行速度', value: um.flight_speed },
+    { label: '走行速度', value: um.run_speed },
+    { label: '出身地',   value: um.origin, wide: true },
+  ].filter(s => s.value);
+
+  const specsHtml = specs.map(s =>
+    s.wide
+      ? `<div class="spec wide"><div class="spec-label">${s.label}</div><div class="spec-value">${s.value}</div></div>`
+      : `<div class="spec"><div class="spec-label">${s.label}</div><div class="spec-value">${s.value}</div></div>`
+  ).join('');
+
+  // 必殺技リスト
+  const movesHtml = moves.length > 0
+    ? moves.map((m, i) => `
+      <div class="move-item">
+        <div class="move-num">${i + 1}</div>
+        <div class="move-body">
+          <div class="move-head">
+            <div class="move-name">${m.name}</div>
+            ${m.type ? `<div class="move-type ${m.type}">${m.type}</div>` : ''}
+          </div>
+          <div class="move-desc">${m.description || ''}</div>
+        </div>
+      </div>`
+    ).join('')
+    : '<div class="error-box">必殺技データがありません</div>';
+
+  return `
+    <div class="um-hero">
+      ${um.series_year ? `<div class="um-year-badge">${um.series_year}</div>` : ''}
+      <div class="um-name">${um.name}</div>
+      ${um.series ? `<div class="um-series">${um.series}</div>` : ''}
+      ${um.alias ? `<div class="um-alias">変身者：<strong>${um.alias}</strong></div>` : ''}
+      ${um.color_timer ? `<div style="margin-top:10px"><span class="timer-badge ${timerClass}">カラータイマー：${um.color_timer}</span></div>` : ''}
+    </div>
+
+    ${specsHtml.length > 0 ? `
+    <div class="specs-section">
+      <div class="specs-title">— 基本スペック —</div>
+      <div class="specs-grid">${specsHtml}</div>
+    </div>` : ''}
+
+    ${um.description ? `
+    <div class="desc-section">
+      <div class="desc-title">— 特徴・解説 —</div>
+      <div class="desc-body">${um.description}</div>
+    </div>` : ''}
+
+    <div class="moves-section">
+      <div class="moves-title">— 主要必殺技 —</div>
+      <div class="moves-list">${movesHtml}</div>
+    </div>
+  `;
+}
+
+loadDetail();
+</script>
+</body>
+</html>

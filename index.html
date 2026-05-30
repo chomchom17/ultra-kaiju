@@ -109,7 +109,17 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .btn-r{padding:8px 20px;background:#fffdf7;border:1px solid #c0392b;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#c0392b;transition:all .15s;letter-spacing:.05em}
 .btn-r:hover{background:#c0392b;color:#fff}
 .hid{display:none!important}
+.site-footer{margin-top:40px;padding:16px 0;border-top:1px solid #c0a070;text-align:center;font-family:'Noto Sans JP',sans-serif;font-size:10px;color:#9a7050;line-height:2;letter-spacing:.08em}
+.site-footer a{color:#8b6040;text-decoration:none}
+.site-footer a:hover{text-decoration:underline}
 .db-badge{display:inline-block;background:#1a4a1a;color:#d0ffe0;font-size:10px;padding:2px 8px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em;margin-left:8px;vertical-align:middle}
+.result-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+.result-count{font-size:12px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em;white-space:nowrap}
+.sort-row{display:flex;border:1px solid #c0a070}
+.sort-btn{padding:4px 11px;background:#fffdf7;border:none;border-right:1px solid #c0a070;font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer;color:#5a3a1a;transition:all .15s;letter-spacing:.05em;white-space:nowrap}
+.sort-btn:last-child{border-right:none}
+.sort-btn.on{background:#2a1a08;color:#f5f0e8}
+.sort-btn:hover:not(.on){background:#ede5d0}
 </style>
 </head>
 <body>
@@ -117,14 +127,15 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 
 <header>
   <div class="site-title">怪獣<span>大図鑑</span></div>
-  <div class="site-byline">ULTRAMAN SERIES — AI搭載版 <span class="db-badge">DB連携 / Gemini</span></div>
-  <div class="stamp">AI自動生成</div>
+  <div class="site-byline">ULTRAMAN SERIES <span class="db-badge">DB連携</span></div>
+  <div class="stamp">非公式ファンサイト</div>
 </header>
 
 <nav>
   <button class="nav-tab active" onclick="tab('search')">▶ 怪獣検索</button>
   <button class="nav-tab" onclick="tab('quiz')">▶ クイズ</button>
   <button class="nav-tab" onclick="tab('favs')">▶ お気に入り</button>
+  <button class="nav-tab" onclick="window.location.href='ultraman_list.html'" style="border-right:none">▶ ウルトラマン</button>
 </nav>
 
 <div id="p-search" class="panel active">
@@ -137,6 +148,14 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
     <select class="series-select" id="series-select" onchange="filterS(this)">
       <option value="all">── 全作品 ──</option>
     </select>
+  </div>
+  <div id="result-bar" class="result-bar hid">
+    <span class="result-count" id="result-count"></span>
+    <div class="sort-row">
+      <button class="sort-btn on" data-s="name" onclick="sortBy(this)">名前順</button>
+      <button class="sort-btn" data-s="series" onclick="sortBy(this)">シリーズ順</button>
+      <button class="sort-btn" data-s="ep" onclick="sortBy(this)">登場話順</button>
+    </div>
   </div>
   <div id="d-box" class="hid"></div>
   <div id="s-loading" class="loading hid"><div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>データを取得中…</div>
@@ -207,49 +226,49 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 
 <script>
 // ========== 設定 ==========
-const SUPABASE_URL = "https://cbxipgqfhbsmgmatherr.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieGlwZ3FmaGJzbWdtYXRoZXJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDMwMzcsImV4cCI6MjA4OTkxOTAzN30.Q1tuMpTsuhCPDAWLUohDI6PTDPZNZU8Uxwf30ENHmNI";
-const GEMINI_KEY = "AIzaSyB7UXEikU1OgC0JpELnlKPK9rlSLPf62_0";
-const GEMINI_API = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+const DATA_KAIJU = 'data/kaiju.json';
 // ==========================
 
-let allK = [], curSeries = "all";
+let allK = [], curSeries = "all", curSort = "name";
+let kaijuDB = null;
 let favs = JSON.parse(localStorage.getItem('kaiju_favs') || '[]');
-let qDiff = "初級", qList = [], qIdx = 0, qScore = 0;
+let qList = [], qIdx = 0, qScore = 0;
 
-// Supabaseからデータ取得
-async function fetchFromDB(params = {}) {
-  let url = `${SUPABASE_URL}/rest/v1/kaiju?select=*`;
-  if (params.search) {
-    const kw = encodeURIComponent(params.search);
-    url += `&or=(name.ilike.*${kw}*,tags.ilike.*${kw}*)`;
-  }
-  if (params.series) {
-    url += `&series=eq.${encodeURIComponent(params.series)}`;
-  }
-  url += "&order=name.asc&limit=100";
+const SERIES_ORDER = ['初代ウルトラマン','ウルトラセブン','帰ってきたウルトラマン','ウルトラマンA','ウルトラマンタロウ','ウルトラマンレオ','ウルトラマン80','ウルトラマンティガ','ウルトラマンダイナ','ウルトラマンガイア','ウルトラマンコスモス','ウルトラマンネクサス','ウルトラマンマックス','ウルトラマンメビウス','ウルトラマンゼロ'];
 
-  const res = await fetch(url, {
-    headers: {
-      "apikey": SUPABASE_KEY,
-      "Authorization": `Bearer ${SUPABASE_KEY}`
-    }
-  });
-  return await res.json();
+// JSONファイルからデータを読み込む（初回のみ fetch、以降はキャッシュを使用）
+async function loadKaijuDB() {
+  if (kaijuDB) return kaijuDB;
+  const res = await fetch(DATA_KAIJU);
+  kaijuDB = await res.json();
+  return kaijuDB;
 }
 
-// シリーズ一覧をDBから取得してプルダウンに反映
+// JSONからクライアントサイドでフィルタリング
+async function fetchFromDB(params = {}) {
+  const data = await loadKaijuDB();
+  let filtered = [...data];
+  if (params.search) {
+    const kw = params.search.toLowerCase();
+    filtered = filtered.filter(k =>
+      (k.name || '').toLowerCase().includes(kw) ||
+      (k.tags || '').toLowerCase().includes(kw)
+    );
+  }
+  if (params.series) {
+    filtered = filtered.filter(k => k.series === params.series);
+  }
+  filtered.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'));
+  return filtered;
+}
+
+// シリーズ一覧を JSON から取得してプルダウンに反映
 async function loadSeriesList() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/kaiju?select=series&limit=500`, {
-      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-    });
-    const data = await res.json();
+    const data = await loadKaijuDB();
     const series = [...new Set(data.map(d => d.series).filter(Boolean))];
-    // 放送順に並べるための既知の順序
-    const order = ['初代ウルトラマン','ウルトラセブン','帰ってきたウルトラマン','ウルトラマンA','ウルトラマンタロウ','ウルトラマンレオ','ウルトラマン80','ウルトラマンティガ','ウルトラマンダイナ','ウルトラマンガイア','ウルトラマンコスモス','ウルトラマンネクサス','ウルトラマンマックス','ウルトラマンメビウス','ウルトラマンゼロ'];
     series.sort((a, b) => {
-      const ai = order.indexOf(a), bi = order.indexOf(b);
+      const ai = SERIES_ORDER.indexOf(a), bi = SERIES_ORDER.indexOf(b);
       if (ai === -1 && bi === -1) return a.localeCompare(b, 'ja');
       if (ai === -1) return 1;
       if (bi === -1) return -1;
@@ -264,19 +283,6 @@ async function loadSeriesList() {
   } catch(e) {}
 }
 
-// AI呼び出し（クイズ生成用）
-async function callAI(prompt) {
-  const res = await fetch(GEMINI_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 1000 }
-    })
-  });
-  const d = await res.json();
-  return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
-}
 
 function tab(n) {
   if (n !== 'quiz') {
@@ -291,23 +297,16 @@ function tab(n) {
 
 async function doSearch() {
   const q = document.getElementById('si').value.trim();
-  if (!q) return;
+  if (!q && curSeries === 'all') return;
   setLoading(true);
   hide('s-init');
   try {
-    allK = await fetchFromDB({ search: q });
-    renderGrid();
-  } catch(e) {
-    show('s-empty');
-  }
-  setLoading(false);
-}
-
-async function loadSeries(s) {
-  setLoading(true);
-  hide('s-init');
-  try {
-    allK = await fetchFromDB({ series: s });
+    const params = {};
+    if (q) params.search = q;
+    if (curSeries !== 'all') params.series = curSeries;
+    allK = await fetchFromDB(params);
+    curSort = 'name';
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('on', b.dataset.s === 'name'));
     renderGrid();
   } catch(e) {
     show('s-empty');
@@ -318,19 +317,51 @@ async function loadSeries(s) {
 function filterS(el) {
   curSeries = el.value;
   document.getElementById('d-box').classList.add('hid');
-  if (curSeries === 'all') {
+  const q = document.getElementById('si').value.trim();
+  if (curSeries === 'all' && !q) {
     allK = [];
     document.getElementById('k-grid').innerHTML = '';
+    document.getElementById('result-bar').classList.add('hid');
     hide('s-empty');
     show('s-init');
   } else {
-    loadSeries(curSeries);
+    doSearch();
+  }
+}
+
+function sortBy(el) {
+  curSort = el.dataset.s;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('on', b.dataset.s === curSort));
+  applySort();
+  renderGrid();
+}
+
+function applySort() {
+  if (curSort === 'name') {
+    allK.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'));
+  } else if (curSort === 'series') {
+    allK.sort((a, b) => {
+      const ai = SERIES_ORDER.indexOf(a.series), bi = SERIES_ORDER.indexOf(b.series);
+      if (ai !== bi) { if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; }
+      const ae = parseInt(a.episode) || 0, be = parseInt(b.episode) || 0;
+      return ae - be;
+    });
+  } else if (curSort === 'ep') {
+    allK.sort((a, b) => {
+      const ai = SERIES_ORDER.indexOf(a.series), bi = SERIES_ORDER.indexOf(b.series);
+      if (ai !== bi) { if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; }
+      const ae = parseInt(a.episode) || 0, be = parseInt(b.episode) || 0;
+      return ae - be;
+    });
   }
 }
 
 function renderGrid() {
   hide('s-empty');
-  if (!allK.length) { show('s-empty'); document.getElementById('k-grid').innerHTML = ''; return; }
+  const resultBar = document.getElementById('result-bar');
+  if (!allK.length) { show('s-empty'); document.getElementById('k-grid').innerHTML = ''; resultBar.classList.add('hid'); return; }
+  resultBar.classList.remove('hid');
+  document.getElementById('result-count').textContent = `${allK.length}件ヒット`;
   document.getElementById('k-grid').innerHTML = allK.map((k, i) => `
     <div class="kcard">
       <button class="fav-btn ${isFav(k.name) ? 'on' : ''}" onclick="toggleFav(event,${i})">★</button>
@@ -436,10 +467,7 @@ async function startQuiz() {
 
   let pool = [];
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/kaiju?select=name,series,tags,episode&limit=500`, {
-      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-    });
-    pool = await res.json();
+    pool = await loadKaijuDB();
   } catch(e) {}
 
   if (!pool.length) { hide('qs-loading'); show('qs-start'); alert('データ取得に失敗しました'); return; }
@@ -487,7 +515,7 @@ async function startQuiz() {
 
 function showQ() {
   const q = qList[qIdx];
-  document.getElementById('qfill').style.width = (qIdx / 10 * 100) + '%';
+  document.getElementById('qfill').style.width = (qIdx / qCount * 100) + '%';
   document.getElementById('qtxt').textContent = `${qIdx + 1}/${qCount}`;
   document.getElementById('qno').textContent = `第${['一','二','三','四','五','六','七','八','九','十'][qIdx]}問（全${qCount}問）`;
   document.getElementById('qtext').textContent = q.q;
@@ -540,5 +568,11 @@ function setLoading(on) {
 document.getElementById('si').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 loadSeriesList();
 </script>
+
+<footer class="site-footer">
+  このサイトは非公式のファンサイトです。円谷プロダクションとは一切関係ありません。<br>
+  ウルトラマンシリーズに関するすべての著作権は © TSUBURAYA PRODUCTIONS CO., LTD. に帰属します。
+</footer>
+
 </body>
 </html>

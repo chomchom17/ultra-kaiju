@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウルトラマン大図鑑</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif JP',serif;background:#f5f0e8;color:#2a1a08;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px 60px}
+header{border-bottom:4px double #8b4513;margin-bottom:0;padding:20px 0 14px;text-align:center}
+header::before{content:'★ ウルトラマン大図鑑 ★';display:block;font-size:11px;letter-spacing:.3em;color:#8b4513;margin-bottom:8px;font-family:'Noto Sans JP',sans-serif}
+.site-title{font-size:clamp(22px,5vw,38px);font-weight:900;color:#1a0a00;letter-spacing:.05em;line-height:1.1}
+.site-title span{color:#1a3a8b}
+.site-byline{font-size:11px;color:#8b6040;margin-top:6px;letter-spacing:.15em;font-family:'Noto Sans JP',sans-serif}
+.stamp{display:inline-block;border:2px solid #1a3a8b;color:#1a3a8b;font-size:10px;padding:2px 8px;letter-spacing:.2em;font-family:'Noto Sans JP',sans-serif;transform:rotate(-2deg);margin-top:6px}
+.back-bar{margin:16px 0 20px;display:flex;align-items:center;gap:6px}
+.back-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#fffdf7;border:1px solid #8b6040;font-family:'Noto Serif JP',serif;font-size:13px;color:#2a1a08;text-decoration:none;transition:all .15s;letter-spacing:.05em}
+.back-link:hover{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
+.section-head{margin:0 0 20px;padding-bottom:10px;border-bottom:2px solid #2a1a08;display:flex;align-items:baseline;gap:10px}
+.section-title{font-size:18px;font-weight:900;letter-spacing:.1em;color:#1a0a00}
+.section-count{font-size:12px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em}
+.um-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.um-card{background:#fffdf7;border:1px solid #c0a070;padding:16px;cursor:pointer;transition:all .15s;position:relative;text-decoration:none;color:inherit;display:block}
+.um-card::after{content:'';position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;background:#1a3a8b;z-index:-1;opacity:.4}
+.um-card:hover{transform:translate(-2px,-2px)}
+.um-card-badge{font-size:10px;color:#fffdf7;background:#1a3a8b;display:inline-block;padding:2px 8px;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif;margin-bottom:8px}
+.um-card-name{font-size:19px;font-weight:900;color:#1a0a00;letter-spacing:.05em;margin-bottom:4px}
+.um-card-series{font-size:11px;color:#1a3a8b;border-left:3px solid #1a3a8b;padding-left:6px;margin-bottom:10px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.05em}
+.um-card-alias{font-size:11px;color:#5a3a1a;font-family:'Noto Sans JP',sans-serif;margin-bottom:8px}
+.um-card-stats{display:flex;gap:10px;margin-bottom:8px}
+.um-mini-stat{font-size:11px;font-family:'Noto Sans JP',sans-serif}
+.um-mini-stat-l{color:#8b6040;letter-spacing:.05em}
+.um-mini-stat-v{color:#1a0a00;font-weight:700;margin-left:2px}
+.um-card-desc{font-size:11px;color:#4a3020;line-height:1.7;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.um-card-arrow{position:absolute;bottom:12px;right:12px;font-size:11px;color:#8b6040;font-family:'Noto Sans JP',sans-serif;letter-spacing:.05em}
+.loading{text-align:center;padding:40px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;font-size:13px;letter-spacing:.1em}
+.dot{display:inline-block;width:6px;height:6px;background:#1a3a8b;border-radius:50%;margin:0 3px;animation:blink 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+.empty{text-align:center;padding:36px;color:#8b6040;font-family:'Noto Sans JP',sans-serif;font-size:13px;border:1px dashed #c0a070}
+.site-footer{margin-top:40px;padding:16px 0;border-top:1px solid #c0a070;text-align:center;font-family:'Noto Sans JP',sans-serif;font-size:10px;color:#9a7050;line-height:2;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="site-title">ウルトラマン<span>大図鑑</span></div>
+  <div class="site-byline">ULTRAMAN SERIES — ヒーロー名鑑</div>
+  <div class="stamp">DB連携</div>
+</header>
+
+<div class="back-bar">
+  <a class="back-link" href="index.html">← 怪獣大図鑑に戻る</a>
+</div>
+
+<div class="section-head">
+  <span class="section-title">ウルトラマン一覧</span>
+  <span class="section-count" id="um-count"></span>
+</div>
+
+<div id="um-loading" class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>データを取得中…</div>
+<div id="um-empty" class="empty" style="display:none">データが見つかりませんでした</div>
+<div id="um-grid" class="um-grid"></div>
+
+</div>
+
+<footer class="site-footer">
+  このサイトは非公式のファンサイトです。円谷プロダクションとは一切関係ありません。<br>
+  ウルトラマンシリーズに関するすべての著作権は © TSUBURAYA PRODUCTIONS CO., LTD. に帰属します。
+</footer>
+
+<script>
+async function loadUltraman() {
+  try {
+    const res = await fetch('data/ultraman.json');
+    const data = await res.json();
+    document.getElementById('um-loading').style.display = 'none';
+    if (!data || data.length === 0) {
+      document.getElementById('um-empty').style.display = 'block';
+      return;
+    }
+    document.getElementById('um-count').textContent = `全 ${data.length} 件`;
+    renderGrid(data);
+  } catch(e) {
+    document.getElementById('um-loading').style.display = 'none';
+    document.getElementById('um-empty').style.display = 'block';
+  }
+}
+
+function renderGrid(list) {
+  const grid = document.getElementById('um-grid');
+  grid.innerHTML = list.map(um => `
+    <a class="um-card" href="ultraman_detail.html?id=${um.id}">
+      <div class="um-card-badge">${um.series_year || ''}</div>
+      <div class="um-card-name">${um.name}</div>
+      <div class="um-card-series">${um.series || ''}</div>
+      ${um.alias ? `<div class="um-card-alias">変身者：${um.alias}</div>` : ''}
+      <div class="um-card-stats">
+        ${um.height ? `<div class="um-mini-stat"><span class="um-mini-stat-l">身長</span><span class="um-mini-stat-v">${um.height}</span></div>` : ''}
+        ${um.weight ? `<div class="um-mini-stat"><span class="um-mini-stat-l">体重</span><span class="um-mini-stat-v">${um.weight}</span></div>` : ''}
+      </div>
+      <div class="um-card-desc">${um.description || ''}</div>
+      <div class="um-card-arrow">詳細を見る ▶</div>
+    </a>
+  `).join('');
+}
+
+loadUltraman();
+</script>
+</body>
+</html>
