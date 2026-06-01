@@ -132,9 +132,9 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 </header>
 
 <nav>
-  <button class="nav-tab active" onclick="tab('search')">▶ 怪獣検索</button>
-  <button class="nav-tab" onclick="tab('quiz')">▶ クイズ</button>
-  <button class="nav-tab" onclick="tab('favs')">▶ お気に入り</button>
+  <button class="nav-tab active" data-tab="search" onclick="tab('search')">▶ 怪獣検索</button>
+  <button class="nav-tab" data-tab="quiz" onclick="tab('quiz')">▶ クイズ</button>
+  <button class="nav-tab" data-tab="favs" onclick="tab('favs')">▶ お気に入り</button>
   <button class="nav-tab" onclick="window.location.href='ultraman_list.html'" style="border-right:none">▶ ウルトラマン</button>
 </nav>
 
@@ -289,7 +289,7 @@ function tab(n) {
     const inProgress = !document.getElementById('qs-q').classList.contains('hid');
     if (inProgress) quitQuiz();
   }
-  document.querySelectorAll('.nav-tab').forEach((t, i) => t.classList.toggle('active', ['search','quiz','favs'][i] === n));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === n));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('p-' + n).classList.add('active');
   if (n === 'favs') renderFavs();
@@ -571,7 +571,8 @@ loadSeriesList();
 
 <footer class="site-footer">
   このサイトは非公式のファンサイトです。円谷プロダクションとは一切関係ありません。<br>
-  ウルトラマンシリーズに関するすべての著作権は © TSUBURAYA PRODUCTIONS CO., LTD. に帰属します。
+  ウルトラマンシリーズに関するすべての著作権は © TSUBURAYA PRODUCTIONS CO., LTD. に帰属します。<br>
+  当サイトはお気に入り機能のためブラウザのローカルストレージを使用しています。個人情報の収集は行っていません。
 </footer>
 
 </body>
