@@ -168,7 +168,7 @@ moves_by_name = {
 }
 
 # ================================================================
-# Supabase へのデータ投入
+# Supabase へのデータ投入（直接実行時のみ動作）
 # ================================================================
 def post_json(endpoint, rows, prefer="return=minimal"):
     data = json.dumps(rows).encode("utf-8")
@@ -187,45 +187,46 @@ def post_json(endpoint, rows, prefer="return=minimal"):
         body = res.read().decode("utf-8")
         return res.status, json.loads(body) if body else []
 
-# Step 1: ultraman テーブルへ投入（ID を取得するため representation で返す）
-print("▶ ウルトラマン基本情報を投入中...")
-try:
-    status, inserted = post_json("ultraman", ultraman_rows, prefer="return=representation")
-    print(f"  成功: HTTP {status}, {len(inserted)}件")
-except urllib.error.HTTPError as e:
-    print(f"  エラー: HTTP {e.code}")
-    print(e.read().decode("utf-8"))
-    exit(1)
+if __name__ == '__main__':
+    # Step 1: ultraman テーブルへ投入（ID を取得するため representation で返す）
+    print("▶ ウルトラマン基本情報を投入中...")
+    try:
+        status, inserted = post_json("ultraman", ultraman_rows, prefer="return=representation")
+        print(f"  成功: HTTP {status}, {len(inserted)}件")
+    except urllib.error.HTTPError as e:
+        print(f"  エラー: HTTP {e.code}")
+        print(e.read().decode("utf-8"))
+        exit(1)
 
-# name → id のマッピングを作成
-id_map = {r["name"]: r["id"] for r in inserted}
-print(f"  IDマップ: {id_map}")
+    # name → id のマッピングを作成
+    id_map = {r["name"]: r["id"] for r in inserted}
+    print(f"  IDマップ: {id_map}")
 
-# Step 2: ultraman_moves テーブルへ投入
-print("\n▶ 必殺技データを投入中...")
-all_moves = []
-for um_name, moves in moves_by_name.items():
-    um_id = id_map.get(um_name)
-    if um_id is None:
-        print(f"  警告: '{um_name}' のIDが見つかりません")
-        continue
-    for move in moves:
-        all_moves.append({
-            "ultraman_id": um_id,
-            "name": move["name"],
-            "type": move["type"],
-            "description": move["description"],
-            "order_no": move["order_no"]
-        })
+    # Step 2: ultraman_moves テーブルへ投入
+    print("\n▶ 必殺技データを投入中...")
+    all_moves = []
+    for um_name, moves in moves_by_name.items():
+        um_id = id_map.get(um_name)
+        if um_id is None:
+            print(f"  警告: '{um_name}' のIDが見つかりません")
+            continue
+        for move in moves:
+            all_moves.append({
+                "ultraman_id": um_id,
+                "name": move["name"],
+                "type": move["type"],
+                "description": move["description"],
+                "order_no": move["order_no"]
+            })
 
-try:
-    status, _ = post_json("ultraman_moves", all_moves)
-    print(f"  成功: HTTP {status}, {len(all_moves)}件")
-except urllib.error.HTTPError as e:
-    print(f"  エラー: HTTP {e.code}")
-    print(e.read().decode("utf-8"))
-    exit(1)
+    try:
+        status, _ = post_json("ultraman_moves", all_moves)
+        print(f"  成功: HTTP {status}, {len(all_moves)}件")
+    except urllib.error.HTTPError as e:
+        print(f"  エラー: HTTP {e.code}")
+        print(e.read().decode("utf-8"))
+        exit(1)
 
-print("\n✅ 全データの投入が完了しました")
-print(f"   ウルトラマン: {len(ultraman_rows)}件")
-print(f"   必殺技: {len(all_moves)}件")
+    print("\n✅ 全データの投入が完了しました")
+    print(f"   ウルトラマン: {len(ultraman_rows)}件")
+    print(f"   必殺技: {len(all_moves)}件")
