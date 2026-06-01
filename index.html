@@ -336,6 +336,10 @@ function sortBy(el) {
   renderGrid();
 }
 
+function epNum(ep) {
+  return parseInt((ep || '').match(/\d+/)?.[0]) || 0;
+}
+
 function applySort() {
   if (curSort === 'name') {
     allK.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'));
@@ -343,15 +347,13 @@ function applySort() {
     allK.sort((a, b) => {
       const ai = SERIES_ORDER.indexOf(a.series), bi = SERIES_ORDER.indexOf(b.series);
       if (ai !== bi) { if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; }
-      const ae = parseInt(a.episode) || 0, be = parseInt(b.episode) || 0;
-      return ae - be;
+      return epNum(a.episode) - epNum(b.episode);
     });
   } else if (curSort === 'ep') {
     allK.sort((a, b) => {
       const ai = SERIES_ORDER.indexOf(a.series), bi = SERIES_ORDER.indexOf(b.series);
       if (ai !== bi) { if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; }
-      const ae = parseInt(a.episode) || 0, be = parseInt(b.episode) || 0;
-      return ae - be;
+      return epNum(a.episode) - epNum(b.episode);
     });
   }
 }
