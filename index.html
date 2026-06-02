@@ -21,15 +21,25 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .nav-tab:hover{background:#b8a88a;color:#1a0a00}
 .nav-tab.active{background:#2a1a08;color:#f5f0e8}
 .panel{display:none}.panel.active{display:block}
-.search-form{display:flex;gap:0;margin-bottom:12px;border:2px solid #2a1a08}
-.search-input{flex:1;background:#fffdf7;border:none;padding:10px 14px;font-family:'Noto Serif JP',serif;font-size:14px;color:#1a0a00;outline:none}
+.search-block{border:2px solid #2a1a08;margin-bottom:20px}
+.search-row{display:flex;gap:0;border-bottom:1px solid #c0a070}
+.search-row:last-child{border-bottom:none}
+.search-field{flex:1;display:flex;flex-direction:column;border-right:1px solid #c0a070}
+.search-field:last-child{border-right:none}
+.search-field-label{font-size:10px;color:#7a5030;letter-spacing:.15em;padding:5px 12px 0;font-family:'Noto Sans JP',sans-serif;background:#ede5d0}
+.search-input{background:#fffdf7;border:none;padding:8px 12px 10px;font-family:'Noto Serif JP',serif;font-size:14px;color:#1a0a00;outline:none;width:100%}
 .search-input::placeholder{color:#b09070}
-.search-btn{padding:10px 20px;background:#2a1a08;border:none;color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.1em;transition:background .15s;white-space:nowrap}
+.search-row-filter{align-items:center;background:#ede5d0;padding:8px 10px;gap:10px;flex-wrap:wrap}
+.series-label{font-size:11px;color:#7a5030;white-space:nowrap;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif}
+.series-select{flex:1;background:#fffdf7;border:1px solid #8b6040;padding:7px 10px;font-family:'Noto Serif JP',serif;font-size:13px;color:#2a1a08;cursor:pointer;outline:none;min-width:120px}
+.ep-input-group{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.ep-sep{font-size:14px;color:#2a1a08;font-family:'Noto Serif JP',serif;font-weight:700;letter-spacing:.05em}
+.ep-input{width:54px;background:#fffdf7;border:1px solid #8b6040;padding:7px 6px;font-family:'Noto Serif JP',serif;font-size:14px;color:#2a1a08;outline:none;text-align:center}
+.ep-input::-webkit-inner-spin-button,.ep-input::-webkit-outer-spin-button{-webkit-appearance:none}
+.ep-input[type=number]{-moz-appearance:textfield}
+.search-btn{padding:8px 18px;background:#2a1a08;border:none;color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.1em;transition:background .15s;white-space:nowrap}
 .search-btn:hover{background:#4a2a0a}
 .search-btn:disabled{opacity:.5;cursor:not-allowed}
-.series-filter{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:10px;background:#ede5d0;border:1px solid #c0a070}
-.series-label{font-size:11px;color:#7a5030;white-space:nowrap;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif}
-.series-select{flex:1;background:#fffdf7;border:1px solid #8b6040;padding:8px 10px;font-family:'Noto Serif JP',serif;font-size:13px;color:#2a1a08;cursor:pointer;outline:none}
 .kaiju-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .kcard{background:#fffdf7;border:1px solid #c0a070;padding:14px;cursor:pointer;transition:all .15s;position:relative}
 .kcard::after{content:'';position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;background:#8b6040;z-index:-1}
@@ -139,15 +149,29 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 </nav>
 
 <div id="p-search" class="panel active">
-  <div class="search-form">
-    <input class="search-input" id="si" placeholder="怪獣名・別名で検索（例：ゴモラ、電気怪獣…）" />
-    <button class="search-btn" id="sb" onclick="doSearch()">検索</button>
-  </div>
-  <div class="series-filter">
-    <span class="series-label">シリーズ▶</span>
-    <select class="series-select" id="series-select" onchange="filterS(this)">
-      <option value="all">── 全作品 ──</option>
-    </select>
+  <div class="search-block">
+    <div class="search-row">
+      <div class="search-field">
+        <span class="search-field-label">怪獣名</span>
+        <input class="search-input" id="si-name" placeholder="例：ゴモラ" />
+      </div>
+      <div class="search-field">
+        <span class="search-field-label">別　名</span>
+        <input class="search-input" id="si-alias" placeholder="例：電気怪獣" />
+      </div>
+    </div>
+    <div class="search-row search-row-filter">
+      <span class="series-label">シリーズ▶</span>
+      <select class="series-select" id="series-select" onchange="filterS(this)">
+        <option value="all">── 全作品 ──</option>
+      </select>
+      <div class="ep-input-group">
+        <span class="ep-sep">第</span>
+        <input class="ep-input" id="ep-num" type="number" min="1" max="999" placeholder="–" />
+        <span class="ep-sep">話</span>
+      </div>
+      <button class="search-btn" id="sb" onclick="doSearch()">検索</button>
+    </div>
   </div>
   <div id="result-bar" class="result-bar hid">
     <span class="result-count" id="result-count"></span>
@@ -248,15 +272,19 @@ async function loadKaijuDB() {
 async function fetchFromDB(params = {}) {
   const data = await loadKaijuDB();
   let filtered = [...data];
-  if (params.search) {
-    const kw = params.search.toLowerCase();
-    filtered = filtered.filter(k =>
-      (k.name || '').toLowerCase().includes(kw) ||
-      (k.tags || '').toLowerCase().includes(kw)
-    );
+  if (params.nameSearch) {
+    const kw = params.nameSearch.toLowerCase();
+    filtered = filtered.filter(k => (k.name || '').toLowerCase().includes(kw));
+  }
+  if (params.aliasSearch) {
+    const kw = params.aliasSearch.toLowerCase();
+    filtered = filtered.filter(k => (k.tags || '').toLowerCase().includes(kw));
   }
   if (params.series) {
     filtered = filtered.filter(k => k.series === params.series);
+  }
+  if (params.episode) {
+    filtered = filtered.filter(k => epNum(k.episode) === parseInt(params.episode));
   }
   filtered.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'));
   return filtered;
@@ -296,13 +324,17 @@ function tab(n) {
 }
 
 async function doSearch() {
-  const q = document.getElementById('si').value.trim();
-  if (!q && curSeries === 'all') return;
+  const qName = document.getElementById('si-name').value.trim();
+  const qAlias = document.getElementById('si-alias').value.trim();
+  const qEp = document.getElementById('ep-num').value.trim();
+  if (!qName && !qAlias && !qEp && curSeries === 'all') return;
   setLoading(true);
   hide('s-init');
   try {
     const params = {};
-    if (q) params.search = q;
+    if (qName) params.nameSearch = qName;
+    if (qAlias) params.aliasSearch = qAlias;
+    if (qEp) params.episode = qEp;
     if (curSeries !== 'all') params.series = curSeries;
     allK = await fetchFromDB(params);
     curSort = 'name';
@@ -317,8 +349,10 @@ async function doSearch() {
 function filterS(el) {
   curSeries = el.value;
   document.getElementById('d-box').classList.add('hid');
-  const q = document.getElementById('si').value.trim();
-  if (curSeries === 'all' && !q) {
+  const qName = document.getElementById('si-name').value.trim();
+  const qAlias = document.getElementById('si-alias').value.trim();
+  const qEp = document.getElementById('ep-num').value.trim();
+  if (curSeries === 'all' && !qName && !qAlias && !qEp) {
     allK = [];
     document.getElementById('k-grid').innerHTML = '';
     document.getElementById('result-bar').classList.add('hid');
@@ -567,7 +601,9 @@ function setLoading(on) {
   document.getElementById('sb').disabled = on;
 }
 
-document.getElementById('si').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+['si-name','si-alias','ep-num'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+});
 loadSeriesList();
 </script>
 
