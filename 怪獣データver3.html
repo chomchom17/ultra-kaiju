@@ -31,7 +31,7 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .series-label{font-size:11px;color:#7a5030;align-self:center;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif;margin-right:4px}
 .chip{padding:4px 12px;background:#fffdf7;border:1px solid #8b6040;font-size:12px;font-family:'Noto Sans JP',sans-serif;color:#5a3a1a;cursor:pointer;transition:all .15s;letter-spacing:.05em}
 .chip:hover,.chip.on{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
-.kaiju-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.kaiju-grid{display:grid;grid-template-columns:1fr;gap:14px}
 .kcard{background:#fffdf7;border:1px solid #c0a070;padding:14px;cursor:pointer;transition:all .15s;position:relative}
 .kcard::after{content:'';position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;background:#8b6040;z-index:-1}
 .kcard:hover{transform:translate(-2px,-2px)}
@@ -111,6 +111,7 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .btn-r:hover{background:#c0392b;color:#fff}
 .hid{display:none!important}
 .db-badge{display:inline-block;background:#1a4a1a;color:#d0ffe0;font-size:10px;padding:2px 8px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em;margin-left:8px;vertical-align:middle}
+.qseries-select{padding:7px 14px;background:#fffdf7;border:2px solid #2a1a08;font-family:'Noto Serif JP',serif;font-size:13px;color:#2a1a08;cursor:pointer;outline:none;letter-spacing:.05em}
 </style>
 </head>
 <body>
@@ -153,7 +154,7 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
   <div id="qs-start">
     <div class="quiz-top">
       <div class="quiz-h">怪獣クイズ</div>
-      <div class="quiz-sub">クイズの種類を選んでスタート！<br>DBのデータをもとにGeminiが10問生成します。</div>
+      <div class="quiz-sub">クイズの種類を選んでスタート！</div>
       <div class="quiz-type-grid">
         <button class="qtype-btn on" data-q="name" onclick="setQType(this)">
           <div class="qtype-title">怪獣名当て</div>
@@ -172,6 +173,12 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
         <span class="series-label">出題数▶</span>
         <button class="diff-btn on" data-c="5" onclick="setQCount(this)">5問</button>
         <button class="diff-btn" data-c="10" onclick="setQCount(this)">10問</button>
+      </div>
+      <div class="qcount-row">
+        <span class="series-label">シリーズ▶</span>
+        <select id="qseries-select" class="qseries-select" onchange="setQSeries(this.value)">
+          <option value="all">全シリーズ</option>
+        </select>
       </div>
       <button class="start-btn" onclick="startQuiz()">挑戦開始</button>
     </div>
@@ -264,6 +271,7 @@ function tab(n) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('p-' + n).classList.add('active');
   if (n === 'favs') renderFavs();
+  if (n === 'quiz') loadQuizSeries();
 }
 
 async function doSearch() {
@@ -390,7 +398,7 @@ function renderFavs() {
 
 function removeFav(e, name) { e.stopPropagation(); favs = favs.filter(f => f.name !== name); saveFavs(); renderFavs(); }
 
-let qType = "name", qCount = 5;
+let qType = "name", qCount = 5, qSeries = "all";
 function setQType(el) {
   document.querySelectorAll('.qtype-btn').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
@@ -400,6 +408,26 @@ function setQCount(el) {
   document.querySelectorAll('[data-c]').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
   qCount = parseInt(el.dataset.c);
+}
+function setQSeries(val) {
+  qSeries = val;
+}
+async function loadQuizSeries() {
+  const sel = document.getElementById('qseries-select');
+  if (sel.options.length > 1) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kaiju?select=series&limit=500`, {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+    });
+    const data = await res.json();
+    const seriesList = [...new Set(data.map(k => k.series).filter(Boolean))].sort();
+    seriesList.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      sel.appendChild(opt);
+    });
+  } catch(e) {}
 }
 function quitQuiz() {
   hide('qs-q');
@@ -421,6 +449,11 @@ async function startQuiz() {
   } catch(e) {}
 
   if (!pool.length) { hide('qs-loading'); show('qs-start'); alert('データ取得に失敗しました'); return; }
+
+  if (qSeries !== "all") {
+    pool = pool.filter(k => k.series === qSeries);
+    if (pool.length < 4) { hide('qs-loading'); show('qs-start'); alert('選択したシリーズの怪獣が少なすぎます（最低4体必要）'); return; }
+  }
 
   const shuffle = arr => arr.sort(() => Math.random() - 0.5);
   const pick = (arr, n) => shuffle([...arr]).slice(0, n);
