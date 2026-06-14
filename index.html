@@ -124,13 +124,6 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .site-footer a{color:#8b6040;text-decoration:none}
 .site-footer a:hover{text-decoration:underline}
 .db-badge{display:inline-block;background:#1a4a1a;color:#d0ffe0;font-size:10px;padding:2px 8px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em;margin-left:8px;vertical-align:middle}
-.result-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
-.result-count{font-size:12px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em;white-space:nowrap}
-.sort-row{display:flex;border:1px solid #c0a070}
-.sort-btn{padding:4px 11px;background:#fffdf7;border:none;border-right:1px solid #c0a070;font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer;color:#5a3a1a;transition:all .15s;letter-spacing:.05em;white-space:nowrap}
-.sort-btn:last-child{border-right:none}
-.sort-btn.on{background:#2a1a08;color:#f5f0e8}
-.sort-btn:hover:not(.on){background:#ede5d0}
 </style>
 </head>
 <body>
@@ -163,7 +156,7 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
     </div>
     <div class="search-row search-row-filter">
       <span class="series-label">シリーズ▶</span>
-      <select class="series-select" id="series-select" onchange="filterS(this)">
+      <select class="series-select" id="series-select">
         <option value="all">── 全作品 ──</option>
       </select>
       <div class="ep-input-group">
@@ -174,19 +167,6 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
       <button class="search-btn" id="sb" onclick="doSearch()">検索</button>
     </div>
   </div>
-  <div id="result-bar" class="result-bar hid">
-    <span class="result-count" id="result-count"></span>
-    <div class="sort-row">
-      <button class="sort-btn on" data-s="name" onclick="sortBy(this)">名前順</button>
-      <button class="sort-btn" data-s="series" onclick="sortBy(this)">シリーズ順</button>
-      <button class="sort-btn" data-s="ep" onclick="sortBy(this)">登場話順</button>
-    </div>
-  </div>
-  <div id="d-box" class="hid"></div>
-  <div id="s-loading" class="loading hid"><div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>データを取得中…</div>
-  <div id="s-empty" class="empty hid">該当する怪獣が見つかりませんでした</div>
-  <div id="s-init" class="empty">キーワード入力またはシリーズを選択してください</div>
-  <div id="k-grid" class="kaiju-grid"></div>
 </div>
 
 <div id="p-quiz" class="panel">
@@ -251,6 +231,7 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
   <div class="favs-count" id="fav-count"></div>
   <div id="fav-empty" class="empty hid">お気に入りはまだありません。<br>怪獣カードの ★ ボタンで登録できます。</div>
   <div id="fav-grid" class="kaiju-grid"></div>
+  <div id="d-box" class="hid"></div>
 </div>
 
 </div>
@@ -260,7 +241,6 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 const DATA_KAIJU = 'data/kaiju.json';
 // ==========================
 
-let allK = [], curSeries = "all", curSort = "name";
 let kaijuDB = null;
 let favs = JSON.parse(localStorage.getItem('kaiju_favs') || '[]');
 let qList = [], qIdx = 0, qScore = 0;
@@ -273,28 +253,6 @@ async function loadKaijuDB() {
   const res = await fetch(DATA_KAIJU);
   kaijuDB = await res.json();
   return kaijuDB;
-}
-
-// JSONからクライアントサイドでフィルタリング
-async function fetchFromDB(params = {}) {
-  const data = await loadKaijuDB();
-  let filtered = [...data];
-  if (params.nameSearch) {
-    const kw = params.nameSearch.toLowerCase();
-    filtered = filtered.filter(k => (k.name || '').toLowerCase().includes(kw));
-  }
-  if (params.aliasSearch) {
-    const kw = params.aliasSearch.toLowerCase();
-    filtered = filtered.filter(k => (k.tags || '').toLowerCase().includes(kw));
-  }
-  if (params.series) {
-    filtered = filtered.filter(k => k.series === params.series);
-  }
-  if (params.episode) {
-    filtered = filtered.filter(k => epNum(k.episode) === parseInt(params.episode));
-  }
-  filtered.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'));
-  return filtered;
 }
 
 // シリーズ一覧を JSON から取得してプルダウンに反映
@@ -331,95 +289,18 @@ function tab(n) {
   if (n === 'quiz') loadQuizSeries();
 }
 
-async function doSearch() {
+function doSearch() {
   const qName = document.getElementById('si-name').value.trim();
   const qAlias = document.getElementById('si-alias').value.trim();
   const qEp = document.getElementById('ep-num').value.trim();
-  if (!qName && !qAlias && !qEp && curSeries === 'all') return;
-  setLoading(true);
-  hide('s-init');
-  try {
-    const params = {};
-    if (qName) params.nameSearch = qName;
-    if (qAlias) params.aliasSearch = qAlias;
-    if (qEp) params.episode = qEp;
-    if (curSeries !== 'all') params.series = curSeries;
-    allK = await fetchFromDB(params);
-    curSort = 'name';
-    document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('on', b.dataset.s === 'name'));
-    renderGrid();
-  } catch(e) {
-    show('s-empty');
-  }
-  setLoading(false);
-}
-
-function filterS(el) {
-  curSeries = el.value;
-  document.getElementById('d-box').classList.add('hid');
-  const qName = document.getElementById('si-name').value.trim();
-  const qAlias = document.getElementById('si-alias').value.trim();
-  const qEp = document.getElementById('ep-num').value.trim();
-  if (curSeries === 'all' && !qName && !qAlias && !qEp) {
-    allK = [];
-    document.getElementById('k-grid').innerHTML = '';
-    document.getElementById('result-bar').classList.add('hid');
-    hide('s-empty');
-    show('s-init');
-  } else {
-    doSearch();
-  }
-}
-
-function sortBy(el) {
-  curSort = el.dataset.s;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('on', b.dataset.s === curSort));
-  applySort();
-  renderGrid();
-}
-
-function epNum(ep) {
-  return parseInt((ep || '').match(/\d+/)?.[0]) || 0;
-}
-
-function applySort() {
-  if (curSort === 'name') {
-    allK.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'));
-  } else if (curSort === 'series') {
-    allK.sort((a, b) => {
-      const ai = SERIES_ORDER.indexOf(a.series), bi = SERIES_ORDER.indexOf(b.series);
-      if (ai !== bi) { if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; }
-      return epNum(a.episode) - epNum(b.episode);
-    });
-  } else if (curSort === 'ep') {
-    allK.sort((a, b) => {
-      const ai = SERIES_ORDER.indexOf(a.series), bi = SERIES_ORDER.indexOf(b.series);
-      if (ai !== bi) { if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; }
-      return epNum(a.episode) - epNum(b.episode);
-    });
-  }
-}
-
-function renderGrid() {
-  hide('s-empty');
-  const resultBar = document.getElementById('result-bar');
-  if (!allK.length) { show('s-empty'); document.getElementById('k-grid').innerHTML = ''; resultBar.classList.add('hid'); return; }
-  resultBar.classList.remove('hid');
-  document.getElementById('result-count').textContent = `${allK.length}件ヒット`;
-  document.getElementById('k-grid').innerHTML = allK.map((k, i) => `
-    <div class="kcard">
-      <button class="fav-btn ${isFav(k.name) ? 'on' : ''}" onclick="toggleFav(event,${i})">★</button>
-      <div class="kcard-num">No.${String(i + 1).padStart(3, '0')}</div>
-      <div class="kcard-name">${k.name}</div>
-      <div class="kcard-series">${k.series || ''}</div>
-      <div class="kcard-desc">${(k.desc || '').substring(0, 60)}…</div>
-      <div class="kcard-tags"><span class="ktag ${k.tc || ''}">${k.tags || ''}</span></div>
-    </div>
-  `).join('');
-  document.querySelectorAll('.kcard').forEach((c, i) => c.addEventListener('click', e => {
-    if (e.target.classList.contains('fav-btn')) return;
-    showDetail(allK[i]);
-  }));
+  const qSeries = document.getElementById('series-select').value;
+  if (!qName && !qAlias && !qEp && qSeries === 'all') return;
+  const p = new URLSearchParams();
+  if (qName) p.set('name', qName);
+  if (qAlias) p.set('alias', qAlias);
+  if (qEp) p.set('ep', qEp);
+  if (qSeries !== 'all') p.set('series', qSeries);
+  window.location.href = 'search_result.html?' + p.toString();
 }
 
 function showDetail(k) {
@@ -449,14 +330,6 @@ function showDetail(k) {
 
 function isFav(name) { return favs.some(f => f.name === name); }
 function saveFavs() { localStorage.setItem('kaiju_favs', JSON.stringify(favs)); }
-
-function toggleFav(e, idx) {
-  e.stopPropagation();
-  const k = allK[idx];
-  if (isFav(k.name)) favs = favs.filter(f => f.name !== k.name);
-  else favs.push(k);
-  saveFavs(); renderGrid();
-}
 
 function toggleFavDetail(name, btn) {
   const k = allK.find(x => x.name === name);
@@ -630,11 +503,6 @@ function resetQuiz() { hide('qs-score'); show('qs-start'); }
 
 function show(id) { document.getElementById(id).classList.remove('hid'); }
 function hide(id) { document.getElementById(id).classList.add('hid'); }
-function setLoading(on) {
-  document.getElementById('s-loading').classList.toggle('hid', !on);
-  document.getElementById('k-grid').style.opacity = on ? '0.3' : '1';
-  document.getElementById('sb').disabled = on;
-}
 
 ['si-name','si-alias','ep-num'].forEach(id => {
   document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
