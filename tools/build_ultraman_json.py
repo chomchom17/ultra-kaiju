@@ -4,7 +4,10 @@ upload_ultraman.py のデータを data/ultraman.json に変換するスクリ�
 このスクリプトを実行してください
 """
 import json, sys
-sys.path.insert(0, '.')
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(Path(__file__).parent))
 from upload_ultraman import ultraman_rows, moves_by_name
 
 result = []
@@ -16,9 +19,10 @@ for i, um in enumerate(ultraman_rows, start=1):
     ]
     result.append(entry)
 
-with open("data/ultraman.json", "w", encoding="utf-8") as f:
+out = ROOT / "data" / "ultraman.json"
+with open(out, "w", encoding="utf-8") as f:
     json.dump(result, f, ensure_ascii=False, indent=2)
 
-print(f"✅ {len(result)}件 → data/ultraman.json")
+print(f"✅ {len(result)}件 → {out}")
 for um in result:
     print(f"  [{um['id']}] {um['name']}（技 {len(um['moves'])}件）")

@@ -1,4 +1,8 @@
 import json, urllib.request, os
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+DATA_DIR = ROOT / "data"
 
 SUPABASE_URL = "https://cbxipgqfhbsmgmatherr.supabase.co"
 # 読み取り専用のエクスポートなので anon キーで OK
@@ -13,15 +17,15 @@ def fetch_all(table, select="*", order="name.asc"):
     with urllib.request.urlopen(req) as res:
         return json.loads(res.read().decode("utf-8"))
 
-os.makedirs("data", exist_ok=True)
+DATA_DIR.mkdir(exist_ok=True)
 
 # ── kaiju ──────────────────────────────────────────
 print("▶ kaiju をエクスポート中...")
 try:
     kaiju = fetch_all("kaiju")
-    with open("data/kaiju.json", "w", encoding="utf-8") as f:
+    with open(DATA_DIR / "kaiju.json", "w", encoding="utf-8") as f:
         json.dump(kaiju, f, ensure_ascii=False, indent=2)
-    print(f"  完了: {len(kaiju)}件 → data/kaiju.json")
+    print(f"  完了: {len(kaiju)}件 → {DATA_DIR}/kaiju.json")
 except Exception as e:
     print(f"  エラー: {e}")
 
@@ -42,15 +46,15 @@ try:
             key=lambda m: m.get("order_no", 0)
         )
 
-    with open("data/ultraman.json", "w", encoding="utf-8") as f:
+    with open(DATA_DIR / "ultraman.json", "w", encoding="utf-8") as f:
         json.dump(ultraman, f, ensure_ascii=False, indent=2)
-    print(f"  完了: {len(ultraman)}件（技 {len(moves)}件含む）→ data/ultraman.json")
+    print(f"  完了: {len(ultraman)}件（技 {len(moves)}件含む）→ {DATA_DIR}/ultraman.json")
 except Exception as e:
     print(f"  エラー（ultramanテーブル未作成の場合は正常）: {e}")
     # 空ファイルを作成しておく
-    for path in ["data/ultraman.json"]:
-        if not os.path.exists(path):
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump([], f)
+    out = DATA_DIR / "ultraman.json"
+    if not out.exists():
+        with open(out, "w", encoding="utf-8") as f:
+            json.dump([], f)
 
 print("\n✅ エクスポート完了")
