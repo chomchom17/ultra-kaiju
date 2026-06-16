@@ -35,18 +35,6 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .fav-btn{position:absolute;top:10px;right:10px;background:none;border:1px solid #c0a070;width:26px;height:26px;cursor:pointer;font-size:14px;color:#b09070;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .fav-btn.on{background:#c0392b;border-color:#c0392b;color:#fff}
 .fav-btn:hover{border-color:#8b4513}
-.detail-box{background:#fffdf7;border:2px solid #2a1a08;padding:20px;margin-bottom:20px;position:relative}
-.detail-box::before{content:'';position:absolute;top:4px;left:4px;right:-4px;bottom:-4px;border:1px solid #c0a070;z-index:-1}
-.detail-close{position:absolute;top:10px;right:10px;background:none;border:1px solid #8b6040;padding:3px 10px;font-family:'Noto Sans JP',sans-serif;font-size:12px;cursor:pointer;color:#5a3a1a;transition:all .15s}
-.detail-close:hover{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
-.detail-name{font-size:28px;font-weight:900;color:#1a0a00;letter-spacing:.05em;margin-bottom:4px}
-.detail-series{font-size:12px;color:#8b4513;letter-spacing:.1em;margin-bottom:12px;font-family:'Noto Sans JP',sans-serif}
-.detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.stat{background:#f5f0e8;border:1px solid #c0a070;padding:8px;text-align:center}
-.stat-l{font-size:10px;color:#8b6040;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif}
-.stat-v{font-size:14px;font-weight:700;color:#1a0a00;margin-top:2px}
-.detail-body{font-size:13px;color:#2a1a08;line-height:1.9;border-top:1px dashed #c0a070;padding-top:12px}
-.detail-fav{margin-top:12px}
 .btn-s{padding:8px 20px;background:#fffdf7;border:1px solid #8b6040;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#2a1a08;transition:all .15s;letter-spacing:.05em}
 .btn-s:hover{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
 .btn-r{padding:8px 20px;background:#fffdf7;border:1px solid #c0392b;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#c0392b;transition:all .15s;letter-spacing:.05em}
@@ -98,7 +86,6 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
   </div>
 </div>
 
-<div id="d-box" class="hid"></div>
 <div id="s-loading" class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>データを取得中…</div>
 <div id="s-empty" class="empty hid">該当する怪獣が見つかりませんでした</div>
 <div id="k-grid" class="kaiju-grid"></div>
@@ -193,33 +180,8 @@ function renderGrid() {
   `).join('');
   document.querySelectorAll('.kcard').forEach((c, i) => c.addEventListener('click', e => {
     if (e.target.classList.contains('fav-btn')) return;
-    showDetail(allK[i]);
+    window.location.href = 'kaiju_detail.html?name=' + encodeURIComponent(allK[i].name);
   }));
-}
-
-function showDetail(k) {
-  const box = document.getElementById('d-box');
-  box.classList.remove('hid');
-  box.innerHTML = `
-    <div class="detail-box">
-      <button class="detail-close" onclick="document.getElementById('d-box').classList.add('hid')">閉じる ✕</button>
-      <div class="detail-name">${k.name}</div>
-      <div class="detail-series">${k.series || ''} / ${k.episode || ''}${k.episode_name ? '「' + k.episode_name + '」' : ''}</div>
-      <div class="detail-stats">
-        <div class="stat"><div class="stat-l">身　長</div><div class="stat-v">${k.height || '不明'}</div></div>
-        <div class="stat"><div class="stat-l">体　重</div><div class="stat-v">${k.weight || '不明'}</div></div>
-        <div class="stat"><div class="stat-l">出身地</div><div class="stat-v" style="font-size:12px">${k.origin || '不明'}</div></div>
-      </div>
-      <div class="detail-body">${k.desc || ''}</div>
-      ${k.tags ? `<div style="margin-top:10px"><span style="font-size:11px;color:#8b6040;font-family:'Noto Sans JP',sans-serif;letter-spacing:.1em;">別名・種別▶</span> <span class="ktag ${k.tc || ''}" style="font-size:11px;padding:3px 10px">${k.tags}</span></div>` : ''}
-      <div class="detail-fav">
-        <button class="btn-${isFav(k.name) ? 'r' : 's'}" id="dfav"
-          onclick="toggleFavDetail('${k.name.replace(/'/g, "\\'")}', this)">
-          ${isFav(k.name) ? '★ お気に入り解除' : '☆ お気に入りに追加'}
-        </button>
-      </div>
-    </div>`;
-  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function isFav(name) { return favs.some(f => f.name === name); }
@@ -231,13 +193,6 @@ function toggleFav(e, idx) {
   if (isFav(k.name)) favs = favs.filter(f => f.name !== k.name);
   else favs.push(k);
   saveFavs(); renderGrid();
-}
-
-function toggleFavDetail(name, btn) {
-  const k = allK.find(x => x.name === name);
-  if (isFav(name)) { favs = favs.filter(f => f.name !== name); btn.textContent = '☆ お気に入りに追加'; btn.className = 'btn-s'; }
-  else { if (k) favs.push(k); btn.textContent = '★ お気に入り解除'; btn.className = 'btn-r'; }
-  saveFavs();
 }
 
 function show(id) { document.getElementById(id).classList.remove('hid'); }

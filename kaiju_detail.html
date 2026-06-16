@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>怪獣大図鑑</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif JP',serif;background:#f5f0e8;color:#2a1a08;min-height:100vh}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px 60px}
+header{border-bottom:4px double #8b4513;margin-bottom:0;padding:20px 0 14px;text-align:center}
+header::before{content:'★ ウルトラ怪獣大図鑑 ★';display:block;font-size:11px;letter-spacing:.3em;color:#8b4513;margin-bottom:8px;font-family:'Noto Sans JP',sans-serif}
+.site-title{font-size:clamp(22px,5vw,38px);font-weight:900;color:#1a0a00;letter-spacing:.05em;line-height:1.1}
+.site-title span{color:#c0392b}
+.site-byline{font-size:11px;color:#8b6040;margin-top:6px;letter-spacing:.15em;font-family:'Noto Sans JP',sans-serif}
+.stamp{display:inline-block;border:2px solid #c0392b;color:#c0392b;font-size:10px;padding:2px 8px;letter-spacing:.2em;font-family:'Noto Sans JP',sans-serif;transform:rotate(-2deg);margin-top:6px}
+nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
+.nav-tab{flex:1;padding:11px 8px;background:#d4c9b0;border:none;border-right:2px solid #2a1a08;font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;color:#2a1a08;cursor:pointer;letter-spacing:.08em;transition:all .15s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.nav-tab:last-child{border-right:none}
+.nav-tab:hover{background:#b8a88a;color:#1a0a00}
+.nav-tab.active{background:#2a1a08;color:#f5f0e8}
+.ktag{padding:2px 7px;background:#2a1a08;color:#f5e8d0;font-size:10px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.08em}
+.ktag.r{background:#8b1a1a;color:#ffe0d0}
+.ktag.g{background:#1a4a1a;color:#d0ffe0}
+.btn-s{padding:8px 20px;background:#fffdf7;border:1px solid #8b6040;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#2a1a08;transition:all .15s;letter-spacing:.05em}
+.btn-s:hover{background:#2a1a08;color:#f5f0e8;border-color:#2a1a08}
+.btn-r{padding:8px 20px;background:#fffdf7;border:1px solid #c0392b;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#c0392b;transition:all .15s;letter-spacing:.05em}
+.btn-r:hover{background:#c0392b;color:#fff}
+.hid{display:none!important}
+.loading{text-align:center;padding:40px;color:#7a5030;font-family:'Noto Sans JP',sans-serif;font-size:13px;letter-spacing:.1em}
+.dot{display:inline-block;width:6px;height:6px;background:#8b4513;border-radius:50%;margin:0 3px;animation:blink 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+.empty{text-align:center;padding:36px;color:#8b6040;font-family:'Noto Sans JP',sans-serif;font-size:13px;border:1px dashed #c0a070}
+.back-row{margin-bottom:16px}
+.detail-wrap{background:#fffdf7;border:2px solid #2a1a08;padding:24px;position:relative}
+.detail-wrap::before{content:'';position:absolute;top:4px;left:4px;right:-4px;bottom:-4px;border:1px solid #c0a070;z-index:-1}
+.detail-name{font-size:clamp(24px,6vw,36px);font-weight:900;color:#1a0a00;letter-spacing:.05em;margin-bottom:6px;line-height:1.2}
+.detail-series{font-size:12px;color:#8b4513;letter-spacing:.1em;margin-bottom:16px;font-family:'Noto Sans JP',sans-serif;border-left:3px solid #8b4513;padding-left:8px}
+.detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.stat{background:#f5f0e8;border:1px solid #c0a070;padding:10px;text-align:center}
+.stat-l{font-size:10px;color:#8b6040;letter-spacing:.1em;font-family:'Noto Sans JP',sans-serif}
+.stat-v{font-size:14px;font-weight:700;color:#1a0a00;margin-top:4px;line-height:1.4}
+.detail-body{font-size:14px;color:#2a1a08;line-height:2;border-top:1px dashed #c0a070;padding-top:16px;margin-bottom:16px}
+.detail-tag-row{margin-bottom:16px}
+.detail-fav{margin-top:4px;padding-top:16px;border-top:1px solid #ede5d0}
+.site-footer{margin-top:40px;padding:16px 0;border-top:1px solid #c0a070;text-align:center;font-family:'Noto Sans JP',sans-serif;font-size:10px;color:#9a7050;line-height:2;letter-spacing:.08em}
+.site-footer a{color:#8b6040;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="site-title">怪獣<span>大図鑑</span></div>
+  <div class="site-byline">ULTRAMAN SERIES</div>
+  <div class="stamp">非公式ファンサイト</div>
+</header>
+
+<nav>
+  <a class="nav-tab active" href="index.html">← 怪獣検索</a>
+  <a class="nav-tab" href="index.html">▶ クイズ</a>
+  <a class="nav-tab" href="index.html">▶ お気に入り</a>
+  <a class="nav-tab" href="ultraman_list.html" style="border-right:none">▶ ウルトラマン</a>
+</nav>
+
+<div id="d-loading" class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><br><br>データを取得中…</div>
+<div id="d-notfound" class="empty hid">該当する怪獣が見つかりませんでした</div>
+
+<div id="d-content" class="hid">
+  <div class="back-row">
+    <button class="btn-s" onclick="goBack()">← 検索結果に戻る</button>
+  </div>
+  <div class="detail-wrap">
+    <div class="detail-name" id="d-name"></div>
+    <div class="detail-series" id="d-series"></div>
+    <div class="detail-stats">
+      <div class="stat"><div class="stat-l">身　長</div><div class="stat-v" id="d-height"></div></div>
+      <div class="stat"><div class="stat-l">体　重</div><div class="stat-v" id="d-weight"></div></div>
+      <div class="stat"><div class="stat-l">出身地</div><div class="stat-v" style="font-size:12px" id="d-origin"></div></div>
+    </div>
+    <div class="detail-body" id="d-body"></div>
+    <div class="detail-tag-row" id="d-tags"></div>
+    <div class="detail-fav">
+      <button id="d-fav" onclick="toggleFav()"></button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<footer class="site-footer">
+  このサイトは非公式のファンサイトです。円谷プロダクションとは一切関係ありません。<br>
+  ウルトラマンシリーズに関するすべての著作権は © TSUBURAYA PRODUCTIONS CO., LTD. に帰属します。
+</footer>
+
+<script>
+const DATA_KAIJU = 'data/kaiju.json';
+let currentKaiju = null;
+let favs = JSON.parse(localStorage.getItem('kaiju_favs') || '[]');
+
+function isFav(name) { return favs.some(f => f.name === name); }
+function saveFavs() { localStorage.setItem('kaiju_favs', JSON.stringify(favs)); }
+
+function updateFavBtn() {
+  const btn = document.getElementById('d-fav');
+  const on = isFav(currentKaiju.name);
+  btn.textContent = on ? '★ お気に入り解除' : '☆ お気に入りに追加';
+  btn.className = on ? 'btn-r' : 'btn-s';
+}
+
+function toggleFav() {
+  if (!currentKaiju) return;
+  if (isFav(currentKaiju.name)) favs = favs.filter(f => f.name !== currentKaiju.name);
+  else favs.push(currentKaiju);
+  saveFavs();
+  updateFavBtn();
+}
+
+function goBack() {
+  if (document.referrer && document.referrer !== location.href) history.back();
+  else window.location.href = 'index.html';
+}
+
+function show(id) { document.getElementById(id).classList.remove('hid'); }
+function hide(id) { document.getElementById(id).classList.add('hid'); }
+
+async function init() {
+  const name = new URLSearchParams(location.search).get('name');
+  if (!name) { hide('d-loading'); show('d-notfound'); return; }
+
+  try {
+    const res = await fetch(DATA_KAIJU);
+    const data = await res.json();
+    const k = data.find(x => x.name === decodeURIComponent(name));
+
+    hide('d-loading');
+    if (!k) { show('d-notfound'); return; }
+
+    currentKaiju = k;
+    document.title = `${k.name} — 怪獣大図鑑`;
+
+    document.getElementById('d-name').textContent = k.name;
+    document.getElementById('d-series').textContent =
+      `${k.series || ''} / ${k.episode || ''}${k.episode_name ? '「' + k.episode_name + '」' : ''}`;
+    document.getElementById('d-height').textContent = k.height || '不明';
+    document.getElementById('d-weight').textContent = k.weight || '不明';
+    document.getElementById('d-origin').textContent = k.origin || '不明';
+    document.getElementById('d-body').textContent = k.desc || '';
+
+    if (k.tags) {
+      document.getElementById('d-tags').innerHTML =
+        `<span style="font-size:11px;color:#8b6040;font-family:'Noto Sans JP',sans-serif;letter-spacing:.1em;">別名・種別▶</span>
+         <span class="ktag ${k.tc || ''}" style="font-size:12px;padding:3px 12px;margin-left:6px">${k.tags}</span>`;
+    }
+
+    updateFavBtn();
+    show('d-content');
+  } catch(e) {
+    hide('d-loading');
+    show('d-notfound');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
