@@ -23,7 +23,7 @@ ULTRA_RE = re.compile(
     r'トリガー|デッカー|ブレーザー|アーク|ULTRAMAN'
 )
 
-MAX_ITEMS = 10
+MAX_ITEMS = 30
 
 
 def strip_source_suffix(title: str) -> str:
