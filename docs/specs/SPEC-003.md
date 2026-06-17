@@ -203,5 +203,5 @@ async function loadNews() {
 - [ ] `workflow_dispatch` で手動実行してデータ更新を確認できる
 
 ---
-ステータス: 📋 仕様検討中
+ステータス: ✅ 実装完了
 作成日: 2026-06-17
