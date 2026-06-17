@@ -113,6 +113,11 @@ def main():
     ]
 
     OUT_FILE.parent.mkdir(exist_ok=True)
+    # 書き込み前に既存ファイルのコンフリクトマーカーをチェック
+    if OUT_FILE.exists():
+        raw = OUT_FILE.read_text(encoding='utf-8')
+        if '<<<<<<<' in raw or '>>>>>>>' in raw:
+            print('Warning: conflict markers found in existing file, overwriting.')
     with open(OUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
