@@ -120,6 +120,9 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .btn-r{padding:8px 20px;background:#fffdf7;border:1px solid #c0392b;font-family:'Noto Serif JP',serif;font-size:13px;cursor:pointer;color:#c0392b;transition:all .15s;letter-spacing:.05em}
 .btn-r:hover{background:#c0392b;color:#fff}
 .hid{display:none!important}
+.chip{padding:3px 10px;background:#fffdf7;border:1px solid #c0a070;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#5a3a1a;cursor:pointer;letter-spacing:.05em;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:#8b4513;background:#ede5d0}
+.chip.on{background:#2a1a08;border-color:#2a1a08;color:#f5f0e8}
 .site-footer{margin-top:40px;padding:16px 0;border-top:1px solid #c0a070;text-align:center;font-family:'Noto Sans JP',sans-serif;font-size:10px;color:#9a7050;line-height:2;letter-spacing:.08em}
 .site-footer a{color:#8b6040;text-decoration:none}
 .site-footer a:hover{text-decoration:underline}
@@ -186,6 +189,15 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
         <span class="ep-sep">話</span>
       </div>
       <button class="search-btn" id="sb" onclick="doSearch()">検索</button>
+    </div>
+    <div class="search-row search-row-filter" style="gap:6px">
+      <span class="series-label">種　別▶</span>
+      <button class="chip" data-type="怪獣" onclick="toggleTypeChip(this)">怪獣</button>
+      <button class="chip" data-type="星人" onclick="toggleTypeChip(this)">星人</button>
+    </div>
+    <div class="search-row search-row-filter" style="gap:6px;flex-wrap:wrap">
+      <span class="series-label">別　名▶</span>
+      <div id="tag-chips" style="display:flex;flex-wrap:wrap;gap:4px"></div>
     </div>
   </div>
   <div class="news-section hid" id="news-section">
@@ -314,6 +326,27 @@ async function loadSeriesList() {
           <div class="series-card-count">${counts[s]}体</div>
         </a>`);
     });
+    const tagCounts = {};
+    data.forEach(k => {
+      (k.tags || '').split('・').forEach(t => {
+        t = t.trim();
+        if (t) tagCounts[t] = (tagCounts[t] || 0) + 1;
+      });
+    });
+    const topTags = Object.entries(tagCounts)
+      .filter(([, c]) => c >= 2)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([t]) => t);
+    const tagChips = document.getElementById('tag-chips');
+    topTags.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'chip';
+      btn.dataset.tag = t;
+      btn.textContent = t;
+      btn.onclick = () => toggleTagChip(btn);
+      tagChips.appendChild(btn);
+    });
   } catch(e) {}
 }
 
@@ -335,13 +368,28 @@ function doSearch() {
   const qAlias = document.getElementById('si-alias').value.trim();
   const qEp = document.getElementById('ep-num').value.trim();
   const qSeries = document.getElementById('series-select').value;
-  if (!qName && !qAlias && !qEp && qSeries === 'all') return;
+  const qType = document.querySelector('.chip[data-type].on')?.dataset.type || '';
+  const qTag = document.querySelector('.chip[data-tag].on')?.dataset.tag || '';
+  if (!qName && !qAlias && !qEp && qSeries === 'all' && !qType && !qTag) return;
   const p = new URLSearchParams();
   if (qName) p.set('name', qName);
   if (qAlias) p.set('alias', qAlias);
   if (qEp) p.set('ep', qEp);
   if (qSeries !== 'all') p.set('series', qSeries);
+  if (qType) p.set('type', qType);
+  if (qTag) p.set('tag', qTag);
   window.location.href = 'search_result.html?' + p.toString();
+}
+
+function toggleTypeChip(el) {
+  const wasOn = el.classList.contains('on');
+  document.querySelectorAll('.chip[data-type]').forEach(c => c.classList.remove('on'));
+  if (!wasOn) el.classList.add('on');
+}
+function toggleTagChip(el) {
+  const wasOn = el.classList.contains('on');
+  document.querySelectorAll('.chip[data-tag]').forEach(c => c.classList.remove('on'));
+  if (!wasOn) el.classList.add('on');
 }
 
 function showDetail(k) {

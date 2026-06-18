@@ -130,6 +130,14 @@ async function fetchFromDB(params = {}) {
   if (params.episode) {
     filtered = filtered.filter(k => epNum(k.episode) === parseInt(params.episode));
   }
+  if (params.typeFilter) {
+    filtered = filtered.filter(k => (k.type || '') === params.typeFilter);
+  }
+  if (params.tagFilter) {
+    filtered = filtered.filter(k =>
+      (k.tags || '').split('・').map(t => t.trim()).includes(params.tagFilter)
+    );
+  }
   filtered.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'));
   return filtered;
 }
@@ -204,6 +212,8 @@ function buildCondLabel(p) {
   if (p.get('alias')) parts.push(`別名「${p.get('alias')}」`);
   if (p.get('series')) parts.push(`<strong>${p.get('series')}</strong>`);
   if (p.get('ep')) parts.push(`第${p.get('ep')}話`);
+  if (p.get('type')) parts.push(`種別「${p.get('type')}」`);
+  if (p.get('tag')) parts.push(`別名「${p.get('tag')}」`);
   return parts.length ? `検索条件：${parts.join(' · ')}` : '全件表示';
 }
 
@@ -216,6 +226,8 @@ async function init() {
   if (p.get('alias')) params.aliasSearch = p.get('alias');
   if (p.get('series')) params.series = p.get('series');
   if (p.get('ep')) params.episode = p.get('ep');
+  if (p.get('type')) params.typeFilter = p.get('type');
+  if (p.get('tag')) params.tagFilter = p.get('tag');
 
   try {
     allK = await fetchFromDB(params);
