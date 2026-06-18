@@ -123,6 +123,11 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .chip{padding:3px 10px;background:#fffdf7;border:1px solid #c0a070;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#5a3a1a;cursor:pointer;letter-spacing:.05em;transition:all .15s;white-space:nowrap}
 .chip:hover{border-color:#8b4513;background:#ede5d0}
 .chip.on{background:#2a1a08;border-color:#2a1a08;color:#f5f0e8}
+.suggest-list{position:absolute;top:100%;left:0;right:0;background:#fffdf7;border:1px solid #8b6040;border-top:none;z-index:200;max-height:220px;overflow-y:auto;display:none;box-shadow:2px 2px 6px rgba(0,0,0,.12)}
+.suggest-item{padding:7px 12px;font-family:'Noto Sans JP',sans-serif;font-size:13px;color:#2a1a08;cursor:pointer;border-bottom:1px solid #f0e8d8}
+.suggest-item:last-child{border-bottom:none}
+.suggest-item:hover,.suggest-item.focus{background:#ede5d0}
+.suggest-match{color:#c0392b;font-weight:700}
 .site-footer{margin-top:40px;padding:16px 0;border-top:1px solid #c0a070;text-align:center;font-family:'Noto Sans JP',sans-serif;font-size:10px;color:#9a7050;line-height:2;letter-spacing:.08em}
 .site-footer a{color:#8b6040;text-decoration:none}
 .site-footer a:hover{text-decoration:underline}
@@ -173,9 +178,10 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
         <span class="search-field-label">怪獣名</span>
         <input class="search-input" id="si-name" placeholder="例：ゴモラ" />
       </div>
-      <div class="search-field">
+      <div class="search-field" style="position:relative">
         <span class="search-field-label">別　名</span>
-        <input class="search-input" id="si-alias" placeholder="例：電気怪獣" />
+        <input class="search-input" id="si-alias" placeholder="例：電気怪獣" autocomplete="off" />
+        <div id="alias-suggest" class="suggest-list"></div>
       </div>
     </div>
     <div class="search-row search-row-filter">
@@ -194,10 +200,6 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
       <span class="series-label">種　別▶</span>
       <button class="chip" data-type="怪獣" onclick="toggleTypeChip(this)">怪獣</button>
       <button class="chip" data-type="星人" onclick="toggleTypeChip(this)">星人</button>
-    </div>
-    <div class="search-row search-row-filter" style="gap:6px;flex-wrap:wrap">
-      <span class="series-label">別　名▶</span>
-      <div id="tag-chips" style="display:flex;flex-wrap:wrap;gap:4px"></div>
     </div>
   </div>
   <div class="news-section hid" id="news-section">
@@ -289,6 +291,8 @@ const DATA_KAIJU = 'data/kaiju.json';
 let kaijuDB = null;
 let favs = JSON.parse(localStorage.getItem('kaiju_favs') || '[]');
 let qList = [], qIdx = 0, qScore = 0;
+let allTags = [];
+let suggestFocusIdx = -1;
 
 const SERIES_ORDER = ['初代ウルトラマン','ウルトラセブン','帰ってきたウルトラマン','ウルトラマンA','ウルトラマンタロウ','ウルトラマンレオ','ウルトラマン80','ウルトラマンティガ','ウルトラマンダイナ','ウルトラマンガイア','ウルトラマンコスモス','ウルトラマンネクサス','ウルトラマンマックス','ウルトラマンメビウス','ウルトラマンゼロ'];
 
@@ -333,20 +337,7 @@ async function loadSeriesList() {
         if (t) tagCounts[t] = (tagCounts[t] || 0) + 1;
       });
     });
-    const topTags = Object.entries(tagCounts)
-      .filter(([, c]) => c >= 2)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 12)
-      .map(([t]) => t);
-    const tagChips = document.getElementById('tag-chips');
-    topTags.forEach(t => {
-      const btn = document.createElement('button');
-      btn.className = 'chip';
-      btn.dataset.tag = t;
-      btn.textContent = t;
-      btn.onclick = () => toggleTagChip(btn);
-      tagChips.appendChild(btn);
-    });
+    allTags = Object.keys(tagCounts).sort((a, b) => (tagCounts[b] - tagCounts[a]) || a.localeCompare(b, 'ja'));
   } catch(e) {}
 }
 
@@ -369,15 +360,13 @@ function doSearch() {
   const qEp = document.getElementById('ep-num').value.trim();
   const qSeries = document.getElementById('series-select').value;
   const qType = document.querySelector('.chip[data-type].on')?.dataset.type || '';
-  const qTag = document.querySelector('.chip[data-tag].on')?.dataset.tag || '';
-  if (!qName && !qAlias && !qEp && qSeries === 'all' && !qType && !qTag) return;
+  if (!qName && !qAlias && !qEp && qSeries === 'all' && !qType) return;
   const p = new URLSearchParams();
   if (qName) p.set('name', qName);
   if (qAlias) p.set('alias', qAlias);
   if (qEp) p.set('ep', qEp);
   if (qSeries !== 'all') p.set('series', qSeries);
   if (qType) p.set('type', qType);
-  if (qTag) p.set('tag', qTag);
   window.location.href = 'search_result.html?' + p.toString();
 }
 
@@ -386,10 +375,61 @@ function toggleTypeChip(el) {
   document.querySelectorAll('.chip[data-type]').forEach(c => c.classList.remove('on'));
   if (!wasOn) el.classList.add('on');
 }
-function toggleTagChip(el) {
-  const wasOn = el.classList.contains('on');
-  document.querySelectorAll('.chip[data-tag]').forEach(c => c.classList.remove('on'));
-  if (!wasOn) el.classList.add('on');
+function setupAliasAutocomplete() {
+  const inp = document.getElementById('si-alias');
+  const box = document.getElementById('alias-suggest');
+
+  inp.addEventListener('input', () => {
+    const kw = inp.value.trim();
+    if (!kw || !allTags.length) { box.style.display = 'none'; return; }
+    const matches = allTags.filter(t => t.includes(kw)).slice(0, 8);
+    if (!matches.length) { box.style.display = 'none'; return; }
+    suggestFocusIdx = -1;
+    box.innerHTML = '';
+    matches.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'suggest-item';
+      const idx = t.indexOf(kw);
+      div.innerHTML = t.slice(0, idx) + '<span class="suggest-match">' + kw + '</span>' + t.slice(idx + kw.length);
+      div.addEventListener('mousedown', e => {
+        e.preventDefault();
+        inp.value = t;
+        box.style.display = 'none';
+        doSearch();
+      });
+      box.appendChild(div);
+    });
+    box.style.display = 'block';
+  });
+
+  inp.addEventListener('keydown', e => {
+    const items = box.querySelectorAll('.suggest-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      suggestFocusIdx = Math.min(suggestFocusIdx + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('focus', i === suggestFocusIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      suggestFocusIdx = Math.max(suggestFocusIdx - 1, -1);
+      items.forEach((el, i) => el.classList.toggle('focus', i === suggestFocusIdx));
+    } else if (e.key === 'Enter') {
+      if (suggestFocusIdx >= 0 && items[suggestFocusIdx]) {
+        e.preventDefault();
+        inp.value = items[suggestFocusIdx].textContent;
+        box.style.display = 'none';
+        suggestFocusIdx = -1;
+      }
+      doSearch();
+    } else if (e.key === 'Escape') {
+      box.style.display = 'none';
+      suggestFocusIdx = -1;
+    }
+  });
+
+  inp.addEventListener('blur', () => {
+    box.style.display = 'none';
+    suggestFocusIdx = -1;
+  });
 }
 
 function showDetail(k) {
@@ -611,9 +651,10 @@ async function loadNews() {
   } catch(e) { /* ニュース取得失敗時は非表示のまま */ }
 }
 
-['si-name','si-alias','ep-num'].forEach(id => {
+['si-name','ep-num'].forEach(id => {
   document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 });
+setupAliasAutocomplete();
 loadSeriesList();
 loadNews();
 </script>
