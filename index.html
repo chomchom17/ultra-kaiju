@@ -412,7 +412,7 @@ function setupAliasAutocomplete() {
       e.preventDefault();
       suggestFocusIdx = Math.max(suggestFocusIdx - 1, -1);
       items.forEach((el, i) => el.classList.toggle('focus', i === suggestFocusIdx));
-    } else if (e.key === 'Enter') {
+    } else if (e.key === 'Enter' && !e.isComposing) {
       if (suggestFocusIdx >= 0 && items[suggestFocusIdx]) {
         e.preventDefault();
         inp.value = items[suggestFocusIdx].textContent;
