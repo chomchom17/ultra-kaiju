@@ -1,8 +1,10 @@
-import json, urllib.request, os
+import json, urllib.request, os, re
 from pathlib import Path
+from collections import Counter
 
 ROOT = Path(__file__).parent.parent
 DATA_DIR = ROOT / "data"
+CLAUDE_MD = ROOT / "CLAUDE.md"
 
 SUPABASE_URL = "https://cbxipgqfhbsmgmatherr.supabase.co"
 # 読み取り専用のエクスポートなので anon キーで OK
@@ -17,15 +19,55 @@ def fetch_all(table, select="*", order="name.asc"):
     with urllib.request.urlopen(req) as res:
         return json.loads(res.read().decode("utf-8"))
 
+def normalize_episode(ep: str) -> str:
+    """第N話・第M話 → 第N・M話 に正規化する。"""
+    if re.match(r'^第\d+話(?:・第\d+話)+$', ep):
+        nums = re.findall(r'\d+', ep)
+        return '第' + '・'.join(nums) + '話'
+    return ep
+
+def update_claude_md(kaiju: list):
+    """CLAUDE.md の <!-- auto-series-start/end --> 区間をシリーズ件数で書き換える。"""
+    text = CLAUDE_MD.read_text(encoding="utf-8")
+
+    counts = Counter(k["series"] for k in kaiju)
+    total = sum(counts.values())
+    lines = [f"- {s}: {c}件" for s, c in sorted(counts.items(), key=lambda x: -x[1])]
+    block = "\n".join(lines)
+
+    # ヘッダー行の合計件数を更新
+    text = re.sub(
+        r'### シリーズ別件数（合計\d+件）',
+        f'### シリーズ別件数（合計{total}件）',
+        text
+    )
+    # マーカー間の内容を置換
+    text = re.sub(
+        r'<!-- auto-series-start -->.*?<!-- auto-series-end -->',
+        f'<!-- auto-series-start -->\n{block}\n<!-- auto-series-end -->',
+        text,
+        flags=re.DOTALL
+    )
+    # プロジェクト概要と構成図の件数も更新
+    text = re.sub(r'`data/kaiju\.json`（\d+件）', f'`data/kaiju.json`（{total}件）', text)
+    text = re.sub(r'kaiju\.json\s+怪獣データ（\d+件）', f'kaiju.json          怪獣データ（{total}件）', text)
+
+    CLAUDE_MD.write_text(text, encoding="utf-8")
+    print(f"  CLAUDE.md を更新: 合計{total}件 / {len(counts)}シリーズ")
+
 DATA_DIR.mkdir(exist_ok=True)
 
 # ── kaiju ──────────────────────────────────────────
 print("▶ kaiju をエクスポート中...")
 try:
     kaiju = fetch_all("kaiju")
+    for k in kaiju:
+        if k.get("episode"):
+            k["episode"] = normalize_episode(k["episode"])
     with open(DATA_DIR / "kaiju.json", "w", encoding="utf-8") as f:
         json.dump(kaiju, f, ensure_ascii=False, indent=2)
     print(f"  完了: {len(kaiju)}件 → {DATA_DIR}/kaiju.json")
+    update_claude_md(kaiju)
 except Exception as e:
     print(f"  エラー: {e}")
 
