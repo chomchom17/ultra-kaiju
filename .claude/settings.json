@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:18741/index.html)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('data/kaiju.json'\\)\\); tiga=[x for x in d if x['series']=='ウルトラマンティガ']; print\\(f'ティガ件数: {len\\(tiga\\)}件'\\); [print\\(f'  {x[\\\\\"episode\\\\\"]} {x[\\\\\"name\\\\\"]} \\({x[\\\\\"tags\\\\\"]}\\)'\\) for x in tiga]\")",
+      "WebFetch(domain:www.ladyeve.net)",
+      "WebFetch(domain:ultraman-tiga-series.tripod.com)",
+      "WebFetch(domain:en.namu.wiki)",
+      "Bash(python3 /tmp/add_tiga_2.py)",
+      "Bash(python3 /tmp/supabase_insert_tiga.py)",
+      "Bash(python3 /tmp/add_dyna_1.py)",
+      "WebFetch(domain:redrah0514.livedoor.blog)",
+      "WebFetch(domain:plaza.rakuten.co.jp)",
+      "Bash(python3 /tmp/add_dyna_2.py)",
+      "Bash(python3 /tmp/add_gaia_1.py)",
+      "Bash(python3 /tmp/add_gaia_2.py)",
+      "Bash(python3 -c ' *)",
+      "WebFetch(domain:guma162.livedoor.blog)",
+      "Bash(python3 /tmp/add_cosmos_1.py)",
+      "WebFetch(domain:v-storage.jp)",
+      "WebFetch(domain:v-storage.bnarts.jp)",
+      "WebFetch(domain:ultraman-ultra.com)",
+      "WebFetch(domain:cocreco.kodansha.co.jp)",
+      "Bash(python3 /tmp/add_cosmos_2.py)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('data/kaiju.json'\\)\\); print\\(f'件数: {len\\(d\\)}'\\); series={}; [series.update\\({k['series']: series.get\\(k['series'],0\\)+1}\\) for k in d]; [print\\(f'  {s}: {c}'\\) for s,c in sorted\\(series.items\\(\\), key=lambda x:-x[1]\\)]\")"
+    ],
+    "additionalDirectories": [
+      "/tmp",
+      "/private/tmp"
+    ]
+  }
+}

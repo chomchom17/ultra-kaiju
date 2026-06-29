@@ -20,8 +20,7 @@ ultra-kaiju/
 ├── ultraman_detail.html    ウルトラ戦士詳細
 ├── data/
 │   ├── kaiju.json          怪獣データ（749件）
-│   ├── ultraman.json       ウルトラ戦士データ
-│   └── kaiju_data_v3.csv   元データCSV（参照用）
+│   └── ultraman.json       ウルトラ戦士データ
 ├── tools/                  管理スクリプト（Python）
 │   ├── export_to_json.py   Supabase → data/*.json エクスポート
 │   ├── build_ultraman_json.py  upload_ultraman.py → ultraman.json ビルド
