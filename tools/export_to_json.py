@@ -65,7 +65,7 @@ try:
         if k.get("episode"):
             k["episode"] = normalize_episode(k["episode"])
     with open(DATA_DIR / "kaiju.json", "w", encoding="utf-8") as f:
-        json.dump(kaiju, f, ensure_ascii=False, indent=2)
+        json.dump(kaiju, f, ensure_ascii=False, separators=(',', ':'))
     print(f"  完了: {len(kaiju)}件 → {DATA_DIR}/kaiju.json")
     update_claude_md(kaiju)
 except Exception as e:
