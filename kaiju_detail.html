@@ -127,13 +127,18 @@ function show(id) { document.getElementById(id).classList.remove('hid'); }
 function hide(id) { document.getElementById(id).classList.add('hid'); }
 
 async function init() {
-  const name = new URLSearchParams(location.search).get('name');
+  const params = new URLSearchParams(location.search);
+  const name = params.get('name');
+  const series = params.get('series');
   if (!name) { hide('d-loading'); show('d-notfound'); return; }
 
   try {
     const res = await fetch(DATA_KAIJU);
     const data = await res.json();
-    const k = data.find(x => x.name === decodeURIComponent(name));
+    const decodedName = decodeURIComponent(name);
+    const k = series
+      ? (data.find(x => x.name === decodedName && x.series === series) || data.find(x => x.name === decodedName))
+      : data.find(x => x.name === decodedName);
 
     hide('d-loading');
     if (!k) { show('d-notfound'); return; }

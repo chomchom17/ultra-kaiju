@@ -188,7 +188,7 @@ function renderGrid() {
   `).join('');
   document.querySelectorAll('.kcard').forEach((c, i) => c.addEventListener('click', e => {
     if (e.target.classList.contains('fav-btn')) return;
-    window.location.href = 'kaiju_detail.html?name=' + encodeURIComponent(allK[i].name);
+    window.location.href = 'kaiju_detail.html?name=' + encodeURIComponent(allK[i].name) + '&series=' + encodeURIComponent(allK[i].series || '');
   }));
 }
 
