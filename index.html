@@ -154,6 +154,8 @@ nav{display:flex;border:2px solid #2a1a08;margin-bottom:20px;margin-top:16px}
 .series-card:hover .series-card-count{color:#c8900a}
 .series-card-name{font-size:13px;font-weight:700;letter-spacing:.05em;line-height:1.5;font-family:'Noto Serif JP',serif}
 .series-card-count{font-size:11px;color:#8b4513;font-family:'Noto Sans JP',sans-serif;margin-top:3px;letter-spacing:.05em}
+.series-card-year{font-size:11px;font-weight:400;color:#8b6040;font-family:'Noto Sans JP',sans-serif;letter-spacing:.02em}
+.series-card:hover .series-card-year{color:#c8900a}
 </style>
 </head>
 <body>
@@ -295,7 +297,8 @@ let qList = [], qIdx = 0, qScore = 0;
 let allTags = [];
 let suggestFocusIdx = -1;
 
-const SERIES_ORDER = ['初代ウルトラマン','ウルトラセブン','帰ってきたウルトラマン','ウルトラマンA','ウルトラマンタロウ','ウルトラマンレオ','ウルトラマン80','ウルトラマンティガ','ウルトラマンダイナ','ウルトラマンガイア','ウルトラマンコスモス','ウルトラマンネクサス','ウルトラマンマックス','ウルトラマンメビウス','ウルトラマンゼロ'];
+const SERIES_ORDER = ['ウルトラQ','初代ウルトラマン','ウルトラセブン','帰ってきたウルトラマン','ウルトラマンA','ウルトラマンタロウ','ウルトラマンレオ','ザ・ウルトラマン','ウルトラマン80','ウルトラマングレート','ウルトラマンパワード','ウルトラマンティガ','ウルトラマンダイナ','ウルトラマンガイア','ウルトラマンネオス','ウルトラマンコスモス','ウルトラマンネクサス','ウルトラマンマックス','ウルトラマンメビウス','ウルトラマンギンガ','ウルトラマンギンガS','ウルトラマンエックス','ウルトラマンオーブ'];
+const SERIES_YEAR = {'ウルトラQ':1966,'初代ウルトラマン':1966,'ウルトラセブン':1967,'帰ってきたウルトラマン':1971,'ウルトラマンA':1972,'ウルトラマンタロウ':1973,'ウルトラマンレオ':1974,'ザ・ウルトラマン':1979,'ウルトラマン80':1980,'ウルトラマングレート':1990,'ウルトラマンパワード':1993,'ウルトラマンティガ':1996,'ウルトラマンダイナ':1997,'ウルトラマンガイア':1998,'ウルトラマンネオス':2000,'ウルトラマンコスモス':2001,'ウルトラマンネクサス':2004,'ウルトラマンマックス':2005,'ウルトラマンメビウス':2006,'ウルトラマンギンガ':2013,'ウルトラマンギンガS':2014,'ウルトラマンエックス':2015,'ウルトラマンオーブ':2016};
 
 // JSONファイルからデータを読み込む（初回のみ fetch、以降はキャッシュを使用）
 async function loadKaijuDB() {
@@ -325,9 +328,10 @@ async function loadSeriesList() {
       const opt = document.createElement('option');
       opt.value = s; opt.textContent = s;
       sel.appendChild(opt);
+      const year = SERIES_YEAR[s] ? `(${SERIES_YEAR[s]})` : '';
       grid.insertAdjacentHTML('beforeend',
         `<a class="series-card" href="search_result.html?series=${encodeURIComponent(s)}">
-          <div class="series-card-name">${s}</div>
+          <div class="series-card-name">${s}${year ? '<span class="series-card-year"> ' + year + '</span>' : ''}</div>
           <div class="series-card-count">${counts[s]}体</div>
         </a>`);
     });
