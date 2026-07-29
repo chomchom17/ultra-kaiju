@@ -114,6 +114,35 @@ python3 tools/export_to_json.py
 # ウルトラマンデータをJSONビルド（ルートから実行）
 python3 tools/build_ultraman_json.py
 
+# 新シリーズの怪獣データを追加（JSONファイルから）
+python3 tools/add_series.py <シリーズ名> <JSONファイルパス>
+
 # ローカル確認用サーバー
 python3 -m http.server 18741
 ```
+
+## 怪獣データ追加ワークフロー（トークン最適化）
+
+新シリーズを追加するときは `/add-kaiju <シリーズ名>` スキルを使う。
+
+### なぜスキルを使うか
+- エージェントを**1回**で完結（調査＋検証を同時に実施）
+- JSON のみ出力を強制（表・ナレーション不要）
+- 別エージェントで再フェッチしない
+- これにより約 **150K → 40K tokens** に削減できる
+
+### フロー
+```
+/add-kaiju ウルトラマン〇〇
+  ↓
+エージェントが Wikipedia から全怪獣収集・別名検証・JSON出力
+  ↓
+python3 tools/add_series.py ウルトラマン〇〇 /tmp/kaiju_new.json
+  ↓
+git add data/kaiju.json && git commit && git push
+```
+
+### typeフィールドのルール
+- 公式の別名（例「熔鉄怪獣」「暗黒星人」）を必ず使う
+- 「宇宙人」「怪獣」などの汎用語は不可（正式別名が不明な場合のみ許容）
+- tcフィールド: 敵キャラは "r"、友好・中立は ""
