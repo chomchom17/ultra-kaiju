@@ -15,15 +15,24 @@
 ultra-kaiju/
 ├── CLAUDE.md               このファイル
 ├── index.html              メイン画面（怪獣図鑑・検索）
+├── kaiju_detail.html       怪獣詳細ページ
+├── search_result.html      検索結果ページ
+├── news_list.html          ウルトラシリーズ最新情報一覧
 ├── ultraman_list.html      ウルトラ戦士一覧
 ├── ultraman_detail.html    ウルトラ戦士詳細
 ├── data/
 │   ├── kaiju.json          怪獣データ（1220件）
-│   └── ultraman.json       ウルトラ戦士データ
+│   ├── ultraman.json       ウルトラ戦士データ
+│   └── news.json           最新情報データ（自動更新）
 ├── tools/                  管理スクリプト（Python）
 │   ├── build_ultraman_json.py  upload_ultraman.py → ultraman.json ビルド
 │   ├── upload_ultraman.py  ウルトラ戦士マスターデータ
-│   └── add_series.py       新シリーズの怪獣データ追加
+│   ├── add_series.py       新シリーズの怪獣データ追加
+│   └── fetch_news.py       Google News RSSから最新情報を取得（GitHub Actionsで毎日実行）
+├── .github/workflows/
+│   └── fetch_news.yml      news.json 自動更新ワークフロー（毎日2:00 JST）
+├── .claude/commands/
+│   └── add-kaiju.md        /add-kaiju スキル定義
 ├── docs/                   企画・仕様・設計ドキュメント（エージェント間引き継ぎ）
 │   ├── workflow.md         運用フロー定義
 │   ├── planning/           企画書（PLAN-NNN.md）
