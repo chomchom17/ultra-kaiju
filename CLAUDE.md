@@ -6,7 +6,7 @@
 テキスト検索・シリーズ絞り込み・話数検索・ウルトラマン一覧閲覧ができる。
 
 - **フロントエンド**: 素のHTML/CSS/JS（フレームワークなし）
-- **データ**: `data/kaiju.json`（1023件）、`data/ultraman.json`（ウルトラ戦士）
+- **データ**: `data/kaiju.json`（1220件）、`data/ultraman.json`（ウルトラ戦士）
 - **バックエンド**: Supabase（Postgres）— データ更新時のみ使用
 - **公開形式**: 静的HTML（ビルド不要、index.htmlを直接開ける）
 
@@ -19,7 +19,7 @@ ultra-kaiju/
 ├── ultraman_list.html      ウルトラ戦士一覧
 ├── ultraman_detail.html    ウルトラ戦士詳細
 ├── data/
-│   ├── kaiju.json          怪獣データ（1023件）
+│   ├── kaiju.json          怪獣データ（1220件）
 │   └── ultraman.json       ウルトラ戦士データ
 ├── tools/                  管理スクリプト（Python）
 │   ├── export_to_json.py   Supabase → data/*.json エクスポート
@@ -53,7 +53,7 @@ ultra-kaiju/
 | tc | string | タイムコード区分（r=赤/g=緑/blue） |
 | tags | string | 怪獣の特徴タグ（例: 「凶暴怪獣」「円盤生物」） |
 
-### シリーズ別件数（合計1188件）
+### シリーズ別件数（合計1220件）
 <!-- auto-series-start -->
 - ウルトラマンダイナ: 73件
 - ザ・ウルトラマン: 66件
@@ -74,6 +74,7 @@ ultra-kaiju/
 - ウルトラマンジード: 41件
 - ウルトラマンZ: 38件
 - ウルトラマンオーブ: 33件
+- ウルトラマントリガー: 32件
 - ウルトラマンR/B: 29件
 - ウルトラQ: 28件
 - ウルトラマンネクサス: 21件
