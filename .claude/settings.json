@@ -7,7 +7,6 @@
       "WebFetch(domain:ultraman-tiga-series.tripod.com)",
       "WebFetch(domain:en.namu.wiki)",
       "Bash(python3 /tmp/add_tiga_2.py)",
-      "Bash(python3 /tmp/supabase_insert_tiga.py)",
       "Bash(python3 /tmp/add_dyna_1.py)",
       "WebFetch(domain:redrah0514.livedoor.blog)",
       "WebFetch(domain:plaza.rakuten.co.jp)",
@@ -22,11 +21,36 @@
       "WebFetch(domain:ultraman-ultra.com)",
       "WebFetch(domain:cocreco.kodansha.co.jp)",
       "Bash(python3 /tmp/add_cosmos_2.py)",
-      "Bash(python3 -c \"import json; d=json.load\\(open\\('data/kaiju.json'\\)\\); print\\(f'件数: {len\\(d\\)}'\\); series={}; [series.update\\({k['series']: series.get\\(k['series'],0\\)+1}\\) for k in d]; [print\\(f'  {s}: {c}'\\) for s,c in sorted\\(series.items\\(\\), key=lambda x:-x[1]\\)]\")"
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('data/kaiju.json'\\)\\); print\\(f'件数: {len\\(d\\)}'\\); series={}; [series.update\\({k['series']: series.get\\(k['series'],0\\)+1}\\) for k in d]; [print\\(f'  {s}: {c}'\\) for s,c in sorted\\(series.items\\(\\), key=lambda x:-x[1]\\)]\")",
+      "Bash(python3 /tmp/fix_max2.py)",
+      "Bash(python3 /tmp/replace_max.py)",
+      "Bash(python3 /tmp/add_mebius.py)",
+      "WebFetch(domain:web-reigo.com)",
+      "WebFetch(domain:ja.m.wikipedia.org)",
+      "Bash(python3 /tmp/fix_mebius.py)",
+      "WebFetch(domain:w.wiki)",
+      "Bash(python3 /tmp/add_ginga.py)",
+      "WebFetch(domain:wikiwiki.jp)",
+      "Bash(python3 /tmp/fix_ginga.py)",
+      "WebFetch(domain:wikiwand.com)",
+      "WebFetch(domain:m.ja.wikipedia.org)",
+      "WebFetch(domain:www.tvdrama-db.com)",
+      "WebFetch(domain:catalog.m-78.jp)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:tokusatsu.fandom.com)",
+      "Bash(python3 /tmp/add_ultramanx.py)",
+      "Bash(python3 /tmp/fix_ultramanx.py)",
+      "WebFetch(domain:wiki.ultimania.org)",
+      "WebFetch(domain:www.tv-tokyo.co.jp)",
+      "Bash(mkdir -p .claude/commands)",
+      "Bash(python3 -c \"import json; data=json.load\\(open\\('/Users/masaomi/Desktop/vscode/ultra-kaiju/data/kaiju.json'\\)\\); series=sorted\\(set\\(k['series'] for k in data if k.get\\('series'\\)\\)\\); [print\\(s\\) for s in series]\")",
+      "WebFetch(domain:masaki-bouken.com)",
+      "Bash(python3 tools/add_series.py ウルトラマンジード /tmp/kaiju_new.json)"
     ],
     "additionalDirectories": [
       "/tmp",
-      "/private/tmp"
+      "/private/tmp",
+      "/Users/masaomi/Desktop/vscode/ultra-kaiju/.claude"
     ]
   }
 }
