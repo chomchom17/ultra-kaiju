@@ -6,8 +6,7 @@
 テキスト検索・シリーズ絞り込み・話数検索・ウルトラマン一覧閲覧ができる。
 
 - **フロントエンド**: 素のHTML/CSS/JS（フレームワークなし）
-- **データ**: `data/kaiju.json`（1220件）、`data/ultraman.json`（ウルトラ戦士）
-- **バックエンド**: Supabase（Postgres）— データ更新時のみ使用
+- **データ**: `data/kaiju.json`（1220件）、`data/ultraman.json`（ウルトラ戦士）を直接編集する方式（Supabase等の外部DBは使用しない）
 - **公開形式**: 静的HTML（ビルド不要、index.htmlを直接開ける）
 
 ## ディレクトリ構成
@@ -22,11 +21,9 @@ ultra-kaiju/
 │   ├── kaiju.json          怪獣データ（1220件）
 │   └── ultraman.json       ウルトラ戦士データ
 ├── tools/                  管理スクリプト（Python）
-│   ├── export_to_json.py   Supabase → data/*.json エクスポート
 │   ├── build_ultraman_json.py  upload_ultraman.py → ultraman.json ビルド
 │   ├── upload_ultraman.py  ウルトラ戦士マスターデータ
-│   └── upload_neos.py      ネオス系データアップロード
-├── db/                     DB定義SQL
+│   └── add_series.py       新シリーズの怪獣データ追加
 ├── docs/                   企画・仕様・設計ドキュメント（エージェント間引き継ぎ）
 │   ├── workflow.md         運用フロー定義
 │   ├── planning/           企画書（PLAN-NNN.md）
@@ -103,8 +100,7 @@ ultra-kaiju/
 ## 技術方針・注意事項
 
 - **ビルド不要**: HTMLファイルは直接編集・確認できる
-- **データ更新**: `data/kaiju.json` を直接編集するか `python3 tools/export_to_json.py` でSupabaseから再取得
-- **Supabase操作**: 本番DBへの直接操作は慎重に行うこと。読み取りはanon keyで可
+- **データ更新**: `data/kaiju.json` を直接編集する（外部DBには依存しない）
 - **CSS**: インラインスタイル（`<style>`タグ内）で管理。外部CSSファイルなし
 - **JS**: インラインスクリプト（`<script>`タグ内）で管理。外部JSファイルなし
 - **文字コード**: UTF-8、日本語コメント・変数名OK
@@ -113,9 +109,6 @@ ultra-kaiju/
 ## スクリプト実行方法
 
 ```bash
-# Supabaseからデータ再取得（ルートから実行）
-python3 tools/export_to_json.py
-
 # ウルトラマンデータをJSONビルド（ルートから実行）
 python3 tools/build_ultraman_json.py
 

@@ -1,12 +1,7 @@
-import json, urllib.request
-
-SUPABASE_URL = "https://cbxipgqfhbsmgmatherr.supabase.co"
-# service_role キーを使用（Supabase ダッシュボード → Settings → API → service_role）
-# このキーはここにのみ記載し、HTML には絶対に書かないこと
-SERVICE_ROLE_KEY = "ここにservice_roleキーを貼り付ける"
-
 # ================================================================
-# ウルトラマン基本情報
+# ウルトラマン基本情報（マスターデータ）
+# tools/build_ultraman_json.py がこのファイルを import して
+# data/ultraman.json をビルドする
 # ================================================================
 ultraman_rows = [
     {
@@ -216,67 +211,3 @@ moves_by_name = {
         {"name": "ウルトラバリヤー",     "type": "防御技",  "order_no": 7, "description": "光のバリアで攻撃を防ぐ防御技。隊長として仲間や地球を守るために使用する。"},
     ],
 }
-
-# ================================================================
-# Supabase へのデータ投入（直接実行時のみ動作）
-# ================================================================
-def post_json(endpoint, rows, prefer="return=minimal"):
-    data = json.dumps(rows).encode("utf-8")
-    req = urllib.request.Request(
-        f"{SUPABASE_URL}/rest/v1/{endpoint}",
-        data=data,
-        headers={
-            "apikey": SERVICE_ROLE_KEY,
-            "Authorization": f"Bearer {SERVICE_ROLE_KEY}",
-            "Content-Type": "application/json",
-            "Prefer": prefer
-        },
-        method="POST"
-    )
-    with urllib.request.urlopen(req) as res:
-        body = res.read().decode("utf-8")
-        return res.status, json.loads(body) if body else []
-
-if __name__ == '__main__':
-    # Step 1: ultraman テーブルへ投入（ID を取得するため representation で返す）
-    print("▶ ウルトラマン基本情報を投入中...")
-    try:
-        status, inserted = post_json("ultraman", ultraman_rows, prefer="return=representation")
-        print(f"  成功: HTTP {status}, {len(inserted)}件")
-    except urllib.error.HTTPError as e:
-        print(f"  エラー: HTTP {e.code}")
-        print(e.read().decode("utf-8"))
-        exit(1)
-
-    # name → id のマッピングを作成
-    id_map = {r["name"]: r["id"] for r in inserted}
-    print(f"  IDマップ: {id_map}")
-
-    # Step 2: ultraman_moves テーブルへ投入
-    print("\n▶ 必殺技データを投入中...")
-    all_moves = []
-    for um_name, moves in moves_by_name.items():
-        um_id = id_map.get(um_name)
-        if um_id is None:
-            print(f"  警告: '{um_name}' のIDが見つかりません")
-            continue
-        for move in moves:
-            all_moves.append({
-                "ultraman_id": um_id,
-                "name": move["name"],
-                "type": move["type"],
-                "description": move["description"],
-                "order_no": move["order_no"]
-            })
-
-    try:
-        status, _ = post_json("ultraman_moves", all_moves)
-        print(f"  成功: HTTP {status}, {len(all_moves)}件")
-    except urllib.error.HTTPError as e:
-        print(f"  エラー: HTTP {e.code}")
-        print(e.read().decode("utf-8"))
-        exit(1)
-
-    print("\n✅ 全データの投入が完了しました")
-    print(f"   ウルトラマン: {len(ultraman_rows)}件")
-    print(f"   必殺技: {len(all_moves)}件")
